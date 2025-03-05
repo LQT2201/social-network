@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Bird, Facebook } from "lucide-react";
 import Image from "next/image";
 import name from "@/public/images/name.png";
+import Link from "next/link";
+import CustomButton from "@/app/_components/CustomButton";
 
 // Định nghĩa schema bằng Zod
 const formSchema = z.object({
@@ -44,14 +46,16 @@ export default function RegisterForm() {
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-50 bg-[url(/images/bg.png)] bg-no-repeat bg-center bg-cover h-screen w-screen">
       <div className="w-full max-w-md p-12 bg-baby-powder/90 rounded-xl">
-        <Image
-          className="m-auto"
-          src={name}
-          width={200}
-          height={200}
-          alt="Picture of the author"
-          placeholder="empty"
-        ></Image>
+        <Link href="/">
+          <Image
+            className="m-auto transform trasition duration-300 hover:-translate-y-1"
+            src={name}
+            width={200}
+            height={200}
+            alt="Picture of logo name"
+            placeholder="empty"
+          ></Image>
+        </Link>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -66,7 +70,7 @@ export default function RegisterForm() {
                     <Input
                       placeholder="Enter your email"
                       {...field}
-                      className="rounded-sm h-11 my-1 bg-white placeholder:text-sm placeholder:text-sl-gray"
+                      className="rounded-sm h-11 my-1 bg-white placeholder:text-sm placeholder:text-sl-gray focus:border-sky-500"
                     />
                   </FormControl>
                   <FormMessage />
@@ -84,7 +88,7 @@ export default function RegisterForm() {
                     <Input
                       type="password"
                       placeholder="Create password"
-                      className="rounded-sm h-11 my-1 bg-white placeholder:text-sm placeholder:text-sl-gray"
+                      className="rounded-sm h-11 my-1 bg-white placeholder:text-sm placeholder:text-sl-gray focus:border-sky-500"
                       {...field}
                     />
                   </FormControl>
@@ -98,7 +102,7 @@ export default function RegisterForm() {
             </h3>
             <Button
               type="submit"
-              className="w-full rounded-full p-5 bg-yellow-orange"
+              className="w-full rounded-full p-5 bg-yellow-orange hover:bg-l-yellow"
             >
               Agree & Join
             </Button>
@@ -112,20 +116,30 @@ export default function RegisterForm() {
         </div>
 
         <div className="flex justify-between">
-          <Button className="rounded-full bg-baby-powder border-1 border-jet text-jet hover:bg-l-gray hover:text-white hover:border-none">
-            <Bird fill="black"></Bird> Google
-          </Button>
-          <Button className="rounded-full bg-baby-powder border-1 border-jet text-jet hover:bg-l-gray hover:text-white hover:border-none">
-            <Facebook fill="black"></Facebook> Facebook
-          </Button>
-          <Button className="rounded-full bg-baby-powder border-1 border-jet text-jet hover:bg-l-gray hover:text-white hover:border-none">
-            <Bird fill="black"></Bird> Twitter
-          </Button>
+          <CustomButton>
+            <Bird className="group-hover:fill-yellow-orange" />
+            Google
+          </CustomButton>
+
+          <CustomButton onClick={() => alert("concac")}>
+            <Facebook className="group-hover:fill-yellow-orange" />
+            Facebook
+          </CustomButton>
+
+          <CustomButton onClick={() => alert("concac")}>
+            <Bird className="group-hover:fill-yellow-orange" />
+            Twitter
+          </CustomButton>
         </div>
 
         <div className="text-center mt-7">
           <h3 className="text-sm text-jet">
-            Already on The Pet? <b className="underline">Sign in</b>
+            Already on The Pet?{" "}
+            <Link href="/">
+              <b className="underline hover:text-yellow-orange hover:no-underline">
+                Sign in
+              </b>
+            </Link>
           </h3>
         </div>
       </div>
