@@ -5,6 +5,9 @@ import { Camera, ChartBar, NotebookText, Video } from "lucide-react";
 import CardPost from "./_components/CardPost";
 import TabPost from "./_components/TabPost";
 import CardRecommendation from "./_components/CardRecommendation";
+import SuggestedPostCard from "./_components/SuggetedPostCard";
+import ListPost from "./_components/ListPost";
+import PostModal from "./_components/PostModal";
 
 const HomePage = () => {
   return (
@@ -45,18 +48,18 @@ const HomePage = () => {
 
           <TabPost />
 
-          <CardPost />
+          <PostModal />
+
+          <ListPost />
         </div>
 
         <div className="col-span-3">
-          <h2 className="text-xl font-medium text-jet">
-            Check out these blogs
-          </h2>
+          <h2 className="text-xl font-medium text-jet">Recommend for you</h2>
           <CardRecommendation />
           <h2 className="text-xl font-medium text-jet mt-3">
-            Recommend for you
+            Check out these blogs
           </h2>
-          <CardPost />
+          <SuggestedPostCard />
         </div>
       </div>
     </div>
