@@ -85,7 +85,10 @@ export default function RootLayout({ children }) {
       <body className={`${readex_pro.className}`}>
         <TooltipProvider>
           <Header />
-          {children}
+          <div className="max-w-screen w-7xl mx-auto px-20 pt-7 bg-baby-powder">
+            {" "}
+            {children}
+          </div>
         </TooltipProvider>
       </body>
     </html>
