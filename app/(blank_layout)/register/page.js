@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Bird, Facebook } from "lucide-react";
 import Image from "next/image";
-import name from "@/public/images/name.png";
+import name from "/images/name.png";
 import Link from "next/link";
 import CustomButton from "@/app/_components/CustomButton";
 

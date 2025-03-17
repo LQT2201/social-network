@@ -1,7 +1,7 @@
 import "@/app/_styles/global.css";
 
 import Image from "next/image";
-import logo from "@/public/images/name.png";
+import logo from "/images/name.png";
 import { Bell, Search, Send } from "lucide-react";
 import { Input } from "@/components/ui/input"; // shadcn Input component
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
