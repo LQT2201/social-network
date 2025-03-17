@@ -3,7 +3,7 @@ import "@/app/_styles/global.css";
 import Image from "next/image";
 import logo from "/images/name.png";
 import { Bell, Search, Send } from "lucide-react";
-import { Input } from "@/components/ui/input"; // shadcn Input component
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
