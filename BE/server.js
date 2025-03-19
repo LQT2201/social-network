@@ -1,9 +1,6 @@
-// server.js
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const userRoutes = require("./routes/userRoutes");
-const postRoutes = require("./routes/postRoutes");
 
 require("dotenv").config();
 
@@ -18,11 +15,10 @@ app.use(cors());
 
 // Middleware để parse JSON
 app.use(express.json());
-app.use(express.urlencoded({ extended }));
+app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use("/api/users", userRoutes);
-app.use("/api/posts", postRoutes);
+const routes = require("./routes/index.js");
+app.use("", routes);
 
 // Chạy server
 const PORT = process.env.PORT || 4000;

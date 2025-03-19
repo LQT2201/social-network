@@ -1,5 +1,5 @@
 // controllers/userController.js
-const User = require("../models/User");
+const User = require("../models/user.model");
 
 // Đăng ký người dùng mới
 const registerUser = async (req, res) => {
