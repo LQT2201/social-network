@@ -8,6 +8,7 @@ const {
   ForbiddenError,
   AuthFailureError,
 } = require("../core/error.response");
+const passport = require("passport");
 
 const encryptPassword = (password) => {
   return new Promise((resolve, reject) => {
@@ -217,6 +218,38 @@ class AuthService {
       tokens,
     };
   };
+
+  static async googleCallback(user) {
+    if (!user) {
+      throw new Error("Đăng nhập Google thất bại");
+    }
+
+    // Create token
+    const privateKey = crypto.randomBytes(64).toString("hex");
+    const publicKey = crypto.randomBytes(64).toString("hex");
+    const { _id: userId, email } = user;
+    const tokens = await createTokenPair(
+      { userId, email },
+      publicKey,
+      privateKey
+    );
+
+    const keyStore = await KeyTokenService.createKeyToken({
+      userId,
+      publicKey,
+      privateKey,
+      refreshToken: tokens.refreshToken,
+    });
+
+    if (!keyStore) {
+      throw new Error("keyStore eror");
+    }
+
+    return {
+      user: getInfoData({ fileds: ["_id", "username", "email"], object: user }),
+      tokens,
+    };
+  }
 }
 
 module.exports = AuthService;

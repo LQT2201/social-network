@@ -38,8 +38,10 @@ const authentication = async (req, res, next) => {
 
     // 6. Nếu tất cả đúng, lưu keyStore vào request để sử dụng tiếp
     req.keyStore = keyStore;
+    req.user = user;
 
     // 7. Tiếp tục xử lý request
+
     return next();
   } catch (error) {
     // Xử lý lỗi và chuyển tiếp tới middleware lỗi

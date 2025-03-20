@@ -104,7 +104,7 @@ export default function RegisterForm() {
               type="submit"
               className="w-full rounded-full p-5 bg-yellow-orange hover:bg-l-yellow"
             >
-              Agree & Join
+              Login now
             </Button>
           </form>
         </Form>
@@ -115,18 +115,24 @@ export default function RegisterForm() {
           <hr className="flex-1 border-l-gray border-1" />
         </div>
 
-        <div className="flex justify-between">
-          <CustomButton>
+        <div className="flex flex-wrap justify-center gap-4">
+          <CustomButton className="flex-1 min-w-[150px]">
             <Bird className="group-hover:fill-yellow-orange" />
             Google
           </CustomButton>
 
-          <CustomButton onClick={() => alert("concac")}>
+          <CustomButton
+            className="flex-1 min-w-[150px]"
+            onClick={() => alert("Facebook login comming soon")}
+          >
             <Facebook className="group-hover:fill-yellow-orange" />
             Facebook
           </CustomButton>
 
-          <CustomButton onClick={() => alert("concac")}>
+          <CustomButton
+            className="flex-1 min-w-[150px]"
+            onClick={() => alert("Twitter login comming soon")}
+          >
             <Bird className="group-hover:fill-yellow-orange" />
             Twitter
           </CustomButton>
@@ -134,10 +140,10 @@ export default function RegisterForm() {
 
         <div className="text-center mt-7">
           <h3 className="text-sm text-jet">
-            Already on The Pet?{" "}
-            <Link href="/">
+            {"Don't have account ? "}
+            <Link href="/signup">
               <b className="underline hover:text-yellow-orange hover:no-underline">
-                Sign in
+                Sign up now
               </b>
             </Link>
           </h3>
