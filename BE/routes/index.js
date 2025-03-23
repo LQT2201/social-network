@@ -5,8 +5,7 @@ const authRoutes = require("./auth.route");
 
 // Routes
 router.use("/api/auth", authRoutes);
-
-// Add comment routes
+router.use("/api", require("./notification.route"));
 router.use("/api", require("./comment.route"));
 
 module.exports = router;

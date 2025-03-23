@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 
+const DOCUMENT_NAME = "Notification";
+const COLLECTION_NAME = "Notifications";
+
 const notificationSchema = new mongoose.Schema(
   {
     recipient: {
@@ -32,7 +35,8 @@ const notificationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    collection: COLLECTION_NAME,
   }
 );
 
-module.exports = mongoose.model("Notification", notificationSchema);
+module.exports = mongoose.model(DOCUMENT_NAME, notificationSchema);
