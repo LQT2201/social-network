@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const CommentController = require("../controllers/comment.controller");
-const { authMiddleware } = require("../middlewares/auth");
+const authentication = require("../middlewares/auth.middleware");
 
 // All routes require authentication
-router.use(authMiddleware);
+router.use(authentication);
 
 // Create comment on post
 router.post("/posts/:postId/comments", CommentController.createComment);

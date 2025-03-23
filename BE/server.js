@@ -3,6 +3,8 @@ const cors = require("cors");
 const connectDB = require("./config/db.config");
 const passport = require("passport");
 const session = require("express-session");
+const http = require("http");
+const SocketService = require("./services/socket.service");
 
 require("dotenv").config();
 
@@ -65,6 +67,9 @@ app.use((error, req, res, next) => {
 
 // Start the server
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+const server = http.createServer(app);
+const socketService = new SocketService(server);
+
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

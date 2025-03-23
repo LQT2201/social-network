@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const NotificationController = require("../controllers/notification.controller");
-const { authMiddleware } = require("../middlewares/auth");
+const authentication = require("../middlewares/auth.middleware");
 
-router.use(authMiddleware);
+router.use(authentication);
 
 router.get("/notifications", NotificationController.getNotifications);
 router.post("/notifications/:id/read", NotificationController.markAsRead);

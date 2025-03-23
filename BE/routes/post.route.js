@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const PostController = require("../controllers/post.controller");
-const { authMiddleware } = require("../middlewares/auth");
-const { uploadCloud } = require("../middlewares/uploadCloud");
+const authentication = require("../middlewares/auth.middleware");
 
 // Public routes
 router.get("/", PostController.getPosts);
@@ -10,15 +9,15 @@ router.get("/", PostController.getPosts);
 router.get("/:id", PostController.getPostById);
 
 // Protected routes
-router.use(authMiddleware);
+router.use(authentication);
 
 router.post(
   "/",
-  uploadCloud.array("media", 5), // Allow up to 5 files
+
   PostController.createPost
 );
 
-router.put("/:id", uploadCloud.array("media", 5), PostController.updatePost);
+router.put("/:id", PostController.updatePost);
 
 router.delete("/:id", PostController.deletePost);
 
