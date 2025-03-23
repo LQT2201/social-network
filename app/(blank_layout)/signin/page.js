@@ -14,22 +14,26 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Bird, Facebook } from "lucide-react";
 import Image from "next/image";
 import name from "@/public/images/name.PNG";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/hook"; // custom hooks cho Redux
+import { login, loginWithGoogle } from "@/redux/slices/authSlice"; // Async thunk login
 import CustomButton from "@/app/_components/CustomButton";
+import { Bird, Facebook } from "lucide-react";
 
 // Định nghĩa schema bằng Zod
 const formSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
+  email: z.string().email({ message: "Email không hợp lệ" }),
+  password: z.string().min(6, { message: "Mật khẩu phải có ít nhất 6 ký tự" }),
 });
 
-export default function RegisterForm() {
-  // Khởi tạo form với react-hook-form và zodResolver
+export default function LoginForm() {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { loading, error } = useAppSelector((state) => state.auth);
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,23 +42,40 @@ export default function RegisterForm() {
     },
   });
 
-  function onSubmit(data) {
-    console.log("Form data:", data);
-    // Xử lý submit, ví dụ gọi API...
-  }
+  // Hàm xử lý submit form
+  const onSubmit = async (data) => {
+    const resultAction = await dispatch(login(data));
+
+    // Kiểm tra nếu đăng nhập thành công
+    if (login.fulfilled.match(resultAction)) {
+      alert("Đăng nhập thành công!");
+      router.push("/homepage"); // Chuyển hướng đến trang dashboard (hoặc trang mong muốn)
+    } else {
+      // Nếu đăng nhập thất bại
+      alert(
+        "Đăng nhập thất bại: " +
+          (resultAction.payload?.message || "Lỗi không xác định")
+      );
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    alert("Google login");
+    window.location.href = "http://localhost:5000/api/auth/google";
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-50 bg-[url(/images/bg.png)] bg-no-repeat bg-center bg-cover h-screen w-screen">
+    <div className="flex flex-col items-center justify-center bg-gray-50 bg-[url(/images/bg.png)] bg-no-repeat bg-center bg-cover h-screen w-screen">
       <div className="w-full max-w-md p-12 bg-baby-powder/90 rounded-xl">
         <Link href="/">
           <Image
-            className="m-auto transform trasition duration-300 hover:-translate-y-1"
+            className="m-auto transform transition duration-300 hover:-translate-y-1"
             src={name}
             width={200}
             height={200}
-            alt="Picture of logo name"
+            alt="Logo"
             placeholder="empty"
-          ></Image>
+          />
         </Link>
 
         <Form {...form}>
@@ -68,7 +89,7 @@ export default function RegisterForm() {
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter your email"
+                      placeholder="Nhập email của bạn"
                       {...field}
                       className="rounded-sm h-11 my-1 bg-white placeholder:text-sm placeholder:text-sl-gray focus:border-sky-500"
                     />
@@ -77,37 +98,50 @@ export default function RegisterForm() {
                 </FormItem>
               )}
             />
+
             {/* Password Field */}
             <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Mật khẩu</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Create password"
-                      className="rounded-sm h-11 my-1 bg-white placeholder:text-sm placeholder:text-sl-gray focus:border-sky-500"
+                      placeholder="Nhập mật khẩu"
                       {...field}
+                      className="rounded-sm h-11 my-1 bg-white placeholder:text-sm placeholder:text-sl-gray focus:border-sky-500"
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <h3 className="text-xs text-center font-normal">
-              By clicking Agree & Join, you agree to the The Pet{" "}
-              <b>User Agreement, Privacy Policy,</b> and <b>Cookie Policy</b>.
-            </h3>
+
+            {/* Hiển thị lỗi nếu có */}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+
             <Button
               type="submit"
               className="w-full rounded-full p-5 bg-yellow-orange hover:bg-l-yellow"
+              disabled={loading}
             >
-              Login now
+              {loading ? "Loading..." : "Login now"}
             </Button>
           </form>
         </Form>
+
+        <div className="text-center mt-7">
+          <h3 className="text-sm text-jet">
+            {"Don't have an account? "}
+            <Link href="/signup">
+              <b className="underline hover:text-yellow-orange hover:no-underline">
+                Sign up now
+              </b>
+            </Link>
+          </h3>
+        </div>
 
         <div className="flex items-center my-4">
           <hr className="flex-1 border-l-gray  border-1" />
@@ -116,14 +150,17 @@ export default function RegisterForm() {
         </div>
 
         <div className="flex flex-wrap justify-center gap-4">
-          <CustomButton className="flex-1 min-w-[150px]">
+          <CustomButton
+            className="flex-1 min-w-[150px]"
+            onClick={() => handleGoogleLogin()}
+          >
             <Bird className="group-hover:fill-yellow-orange" />
             Google
           </CustomButton>
 
           <CustomButton
             className="flex-1 min-w-[150px]"
-            onClick={() => alert("Facebook login comming soon")}
+            onClick={() => alert("Facebook login")}
           >
             <Facebook className="group-hover:fill-yellow-orange" />
             Facebook
@@ -131,22 +168,11 @@ export default function RegisterForm() {
 
           <CustomButton
             className="flex-1 min-w-[150px]"
-            onClick={() => alert("Twitter login comming soon")}
+            onClick={() => alert("Twitter login")}
           >
             <Bird className="group-hover:fill-yellow-orange" />
             Twitter
           </CustomButton>
-        </div>
-
-        <div className="text-center mt-7">
-          <h3 className="text-sm text-jet">
-            {"Don't have account ? "}
-            <Link href="/signup">
-              <b className="underline hover:text-yellow-orange hover:no-underline">
-                Sign up now
-              </b>
-            </Link>
-          </h3>
         </div>
       </div>
     </div>

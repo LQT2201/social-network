@@ -23,13 +23,12 @@ class AuthController {
   static signIn = async (req, res, next) => {
     try {
       const { email, password } = req.body;
-      const result = await AuthService.signIn({ email, password });
 
-      if (result.metadata) {
-        return res.status(result.code).json(result.metadata);
-      } else {
-        return res.status(400).json({ message: "Đăng nhập thất bại" });
-      }
+      new SuccessResponse({
+        message: "Đăng nhập thành công",
+        metadata: await AuthService.signIn({ email, password }),
+      }).send(res);
+      // Nếu có lỗi thì trả về thông báo lỗi
     } catch (error) {
       next(error);
     }
@@ -81,10 +80,16 @@ class AuthController {
 
       const result = await AuthService.googleCallback(req.user);
 
-      new SuccessResponse({
-        message: "Đăng nhập Google thành công",
-        metadata: result,
-      }).send(res);
+      res.cookie("accessToken", result.tokens.accessToken, {
+        httpOnly: false,
+        secure: false,
+      });
+
+      res.cookie("refreshToken", result.tokens.refreshToken, {
+        httpOnly: false,
+        secure: false,
+      });
+      return res.redirect(`http://localhost:3000/signin`);
     } catch (error) {
       next(error);
     }

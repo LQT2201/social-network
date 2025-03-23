@@ -19,13 +19,15 @@ import Image from "next/image";
 import name from "@/public/images/name.PNG";
 import Link from "next/link";
 import CustomButton from "@/app/_components/CustomButton";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "@/redux/slices/authSlice";
 
 // Định nghĩa schema bằng Zod
 const formSchema = z.object({
   username: z
     .string()
     .min(3, { message: "Username must be at least 3 characters" })
-    .max(50, { messasge: "Your username exceed the limit" }),
+    .max(50, { message: "Your username exceed the limit" }),
   email: z.string().email({ message: "Invalid email address" }),
   password: z
     .string()
@@ -33,11 +35,14 @@ const formSchema = z.object({
 });
 
 export default function RegisterForm() {
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
+
   // Khởi tạo form với react-hook-form và zodResolver
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "", // Thêm giá trị mặc định cho username
+      username: "",
       email: "",
       password: "",
     },
@@ -45,8 +50,7 @@ export default function RegisterForm() {
 
   // Hàm xử lý khi form được submit
   function onSubmit(data) {
-    console.log("Form data:", data);
-    // Xử lý submit, ví dụ gọi API...
+    dispatch(registerUser(data)); // Dispatch action đăng ký
   }
 
   return (
@@ -123,6 +127,8 @@ export default function RegisterForm() {
               )}
             />
 
+            {error && <p className="text-red-500 text-sm">{error.message}</p>}
+
             <h3 className="text-xs text-center font-normal">
               By clicking Agree & Join, you agree to the The Pet{" "}
               <b>User Agreement, Privacy Policy,</b> and <b>Cookie Policy</b>.
@@ -131,8 +137,9 @@ export default function RegisterForm() {
             <Button
               type="submit"
               className="w-full rounded-full p-5 bg-yellow-orange hover:bg-l-yellow"
+              disabled={loading}
             >
-              Agree & Join
+              {loading ? "Loading..." : "Agree & Join"}
             </Button>
           </form>
         </Form>

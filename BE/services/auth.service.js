@@ -117,12 +117,12 @@ class AuthService {
     const user = await User.findOne({ email });
 
     if (!user) {
-      throw new Error("Email chưa đăng ký tài khoản");
+      throw new AuthFailureError("Email chưa đăng ký tài khoản");
     }
 
     const encryptedPassword = user.password;
     const decPassword = await decryptPassword(encryptedPassword);
-    if (password !== decPassword) throw new Error("Sai mật khẩu");
+    if (password !== decPassword) throw new AuthFailureError("Sai mật khẩu");
 
     const privateKey = crypto.randomBytes(64).toString("hex");
     const publicKey = crypto.randomBytes(64).toString("hex");
@@ -146,14 +146,11 @@ class AuthService {
     }
 
     return {
-      code: 200,
-      metadata: {
-        user: getInfoData({
-          fileds: ["_id", "username", "email"],
-          object: user,
-        }),
-        tokens,
-      },
+      user: getInfoData({
+        fileds: ["_id", "username", "email"],
+        object: user,
+      }),
+      tokens,
     };
   };
 
