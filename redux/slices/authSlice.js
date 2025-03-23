@@ -1,12 +1,13 @@
 // src/redux/slices/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "@/lib/axios"; // Sử dụng Axios instance đã cấu hình lo
+import axios from "@/lib/axios"; // Sử dụng Axios instance đã cấu hình
 
 // Async thunk để làm mới access token
 export const refreshAccessToken = createAsyncThunk(
   "auth/refreshToken",
   async (_, { rejectWithValue }) => {
     try {
+      // Lấy refreshToken từ localStorage
       const refreshToken = localStorage.getItem("refreshToken");
       const response = await axios.post("/auth/handlerefreshtoken", {
         refreshToken,
@@ -67,18 +68,22 @@ export const logout = createAsyncThunk("auth/logout", async () => {
   return null;
 });
 
+// Khởi tạo initialState
+const initialState = {
+  user: null,
+  loading: false,
+  error: null,
+};
+
 const authSlice = createSlice({
   name: "auth",
-  initialState: {
-    user: null,
-    loading: false,
-    error: null,
-    accessToken: localStorage.getItem("accessToken") || null,
-    refreshToken: localStorage.getItem("refreshToken") || null,
-  },
+  initialState,
   reducers: {
     resetError: (state) => {
       state.error = null;
+    },
+    setUser: (state, action) => {
+      state.user = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -91,8 +96,8 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.metadata.user;
-        state.accessToken = action.payload.metadata.tokens.accessToken;
-        state.refreshToken = action.payload.metadata.tokens.refreshToken;
+
+        // Lưu token vào localStorage
         localStorage.setItem(
           "accessToken",
           action.payload.metadata.tokens.accessToken
@@ -115,8 +120,8 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.metadata.user;
-        state.accessToken = action.payload.metadata.tokens.accessToken;
-        state.refreshToken = action.payload.metadata.tokens.refreshToken;
+
+        // Lưu token vào localStorage
         localStorage.setItem(
           "accessToken",
           action.payload.metadata.tokens.accessToken
@@ -129,9 +134,14 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload.message || "Đã xảy ra lỗi";
+      })
+
+      // Xử lý logout
+      .addCase(logout.fulfilled, (state) => {
+        state.user = null;
       });
   },
 });
 
-export const { resetError } = authSlice.actions;
+export const { resetError, setUser } = authSlice.actions;
 export default authSlice.reducer;

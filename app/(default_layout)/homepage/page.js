@@ -2,14 +2,13 @@
 
 import React, { useState } from "react";
 import SideNav from "./_components/SideNav";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Camera, ChartBar, NotebookText, Video } from "lucide-react";
-
 import TabPost from "./_components/TabPost";
 import CardRecommendation from "./_components/CardRecommendation";
 import SuggestedPostCard from "./_components/SuggetedPostCard";
 import ListPost from "./_components/ListPost";
 import PostModal from "./_components/PostModal";
+import CreatePostSection from "./_components/CreatePostSection";
+import withAuth from "@/hocs/withAuth";
 
 const HomePage = () => {
   const [open, setOpen] = useState(false);
@@ -23,34 +22,8 @@ const HomePage = () => {
       </div>
 
       <div className="col-span-7 p-1 text-sm">
-        <div className="flex justify-between items-center">
-          <Avatar className="size-20">
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>QT</AvatarFallback>
-          </Avatar>
-          <div className="bg-white rounded-lg w-1/5 h-20 flex flex-col justify-center items-center">
-            <Camera size={35} className="mb-1 text-yellow-orange" />
-            <h3 className="font-bold">Photo</h3>
-          </div>
-
-          <div className="bg-white rounded-lg w-1/5 h-20 flex flex-col justify-center items-center">
-            <NotebookText size={35} className="mb-1 text-yellow-orange" />
-            <h3 className="font-bold">Text</h3>
-          </div>
-
-          <div className="bg-white rounded-lg w-1/5 h-20 flex flex-col justify-center items-center">
-            <Video size={35} className="mb-1 text-yellow-orange" />
-            <h3 className="font-bold">Video</h3>
-          </div>
-
-          <div className="bg-white rounded-lg w-1/5 h-20 flex flex-col justify-center items-center">
-            <ChartBar size={35} className="mb-1 text-yellow-orange" />
-            <h3 className="font-bold">Poll</h3>
-          </div>
-        </div>
-
+        <CreatePostSection />
         <TabPost />
-
         <ListPost
           onCommentClick={() => {
             setOpen((prev) => !prev);
@@ -58,17 +31,18 @@ const HomePage = () => {
         />
       </div>
 
-      <div className="col-span-3">
+      <aside className="col-span-3">
         <h2 className="text-xl font-medium text-jet">Recommend for you</h2>
         <CardRecommendation />
         <h2 className="text-xl font-medium text-jet mt-3">
           Check out these blogs
         </h2>
         <SuggestedPostCard />
-      </div>
+      </aside>
+
       <PostModal open={open} setOpen={setOpen} />
     </div>
   );
 };
 
-export default HomePage;
+export default withAuth(HomePage);
