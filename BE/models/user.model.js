@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require("mongoose");
 
 const DOCUMENT_NAME = "User";
@@ -8,7 +7,6 @@ const userSchema = new mongoose.Schema(
   {
     username: {
       type: String,
-      required: true,
       unique: true,
     },
     email: {
@@ -16,24 +14,23 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    googleId: {
-      type: String,
-    },
+    googleId: String,
     password: {
       type: String,
       required: true,
     },
-    avatar: {
-      type: String,
-    },
     status: {
       type: String,
       enum: ["active", "inactive"],
-      default: "inactive",
+      default: "active",
     },
     verify: {
       type: Boolean,
       default: false,
+    },
+    profile: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserProfile",
     },
   },
   {
