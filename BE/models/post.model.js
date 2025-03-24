@@ -12,8 +12,30 @@ const postSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: true,
       maxLength: 5000,
+    },
+    metadata: {
+      tags: [
+        {
+          type: String,
+          trim: true,
+        },
+      ],
+      location: {
+        type: {
+          lat: Number,
+          lng: Number,
+          name: String,
+        },
+        default: null,
+      },
+    },
+    settings: {
+      visibility: {
+        type: String,
+        enum: ["public", "private", "followers"],
+        default: "public",
+      },
     },
     media: [
       {
@@ -21,36 +43,48 @@ const postSchema = new mongoose.Schema(
           type: String,
           enum: ["image", "video"],
         },
-        url: String,
+        url: {
+          type: String,
+        },
+        publicId: {
+          type: String,
+        },
+        thumbnail: String,
+        dimensions: {
+          width: Number,
+          height: Number,
+        },
+        metadata: {
+          format: String,
+          size: Number,
+          originalName: String,
+        },
       },
     ],
-    likes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-    comments: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Comment",
-      },
-    ],
-    shares: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-    tags: [
-      {
-        type: String,
-      },
-    ],
-    visibility: {
+    status: {
       type: String,
-      enum: ["public", "private", "followers"],
-      default: "public",
+      enum: ["active", "deleted", "reported"],
+      default: "active",
+    },
+    stats: {
+      likes: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
+      comments: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Comment",
+        },
+      ],
+      shares: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
     },
   },
   {

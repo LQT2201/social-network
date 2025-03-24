@@ -45,6 +45,9 @@ require("./config/passport.config");
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Serve uploaded files statically
+app.use("/uploads", express.static("uploads"));
+
 // Routes
 const routes = require("./routes/index.js");
 app.use("", routes);

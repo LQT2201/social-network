@@ -1,6 +1,7 @@
 const JWT = require("jsonwebtoken");
 const { AuthFailureError } = require("../core/error.response");
 const KeyTokenService = require("../services/keyToken.service");
+const User = require("../models/user.model");
 
 const HEADER = {
   CLIENT_ID: "x-client-id", // Đây là header để lấy userId
@@ -37,11 +38,11 @@ const authentication = async (req, res, next) => {
     }
 
     // 6. Nếu tất cả đúng, lưu keyStore vào request để sử dụng tiếp
-    req.keyStore = keyStore;
-    req.user = user;
+    req.userId = userId;
+
+    console.log("Authentication middleware success");
 
     // 7. Tiếp tục xử lý request
-
     return next();
   } catch (error) {
     // Xử lý lỗi và chuyển tiếp tới middleware lỗi

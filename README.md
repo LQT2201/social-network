@@ -19,10 +19,21 @@ A full-stack social networking platform built with Next.js and Node.js, featurin
   - Polls and voting system
 
 - **Social Interactions**
+
   - Follow/unfollow users
   - Real-time notifications
   - Comment threads and replies
   - User profiles and activity feeds
+
+- **Real-time Messaging**
+  - Private one-on-one conversations
+  - Group chat support
+  - Message status (sent, delivered, read)
+  - Pin/unpin conversations
+  - Media sharing in chats
+  - Online/offline status
+  - Typing indicators
+  - Message search
 
 ## Tech Stack
 

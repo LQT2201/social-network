@@ -1,0 +1,87 @@
+{
+  "info": {
+    "name": "Comment Routes",
+    "description": "Tests for comment functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Comment on Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"content\": \"This is a test comment\",\n    \"media\": []\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/comments/posts/{{postId}}/comments",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "comments", "posts", "{{postId}}", "comments"]
+        }
+      }
+    },
+    {
+      "name": "Reply to Comment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"content\": \"This is a reply to the comment\",\n    \"media\": []\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/comments/comments/{{commentId}}/reply",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "comments", "comments", "{{commentId}}", "reply"]
+        }
+      }
+    },
+    {
+      "name": "Like/Unlike Comment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/comments/comments/{{commentId}}/like",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "comments", "comments", "{{commentId}}", "like"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    }
+  ]
+}

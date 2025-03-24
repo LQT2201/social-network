@@ -5,8 +5,20 @@ class PostController {
   // Create new post
   static async createPost(req, res, next) {
     try {
-      const files = req.files || [];
-      const post = await PostService.createPost(req.user.id, req.body, files);
+      // Parse request body with safe defaults
+      const postData = {
+        content: req.body.content,
+        visibility: req.body.visibility || "public",
+        tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+        location: req.body.location ? JSON.parse(req.body.location) : null,
+      };
+
+      // Create post using service
+      const post = await PostService.createPost(
+        req.userId,
+        postData,
+        req.files || []
+      );
 
       new SuccessResponse({
         message: "Post created successfully",
@@ -34,7 +46,14 @@ class PostController {
   // Get single post by ID
   static async getPostById(req, res, next) {
     try {
-      const post = await PostService.getPostById(req.params.id);
+      const postId = req.params.id;
+      console.log("Fetching post with ID:", postId);
+
+      const post = await PostService.getPostById(postId);
+
+      if (!post) {
+        throw new NotFoundError("Post not found");
+      }
 
       new SuccessResponse({
         message: "Post retrieved successfully",
@@ -48,7 +67,8 @@ class PostController {
   // Like/Unlike post
   static async likePost(req, res, next) {
     try {
-      const post = await PostService.likePost(req.params.id, req.user.id);
+      const userId = req.userId;
+      const post = await PostService.likePost(req.params.id, req.userId);
 
       new SuccessResponse({
         message: "Post like status updated",
@@ -62,7 +82,7 @@ class PostController {
   // Share post
   static async sharePost(req, res, next) {
     try {
-      const post = await PostService.sharePost(req.params.id, req.user.id);
+      const post = await PostService.sharePost(req.params.id, req.userId);
 
       new SuccessResponse({
         message: "Post shared successfully",
@@ -78,7 +98,7 @@ class PostController {
     try {
       const post = await PostService.voteInPoll(
         req.params.id,
-        req.user.id,
+        req.userId,
         req.body.optionId
       );
 
@@ -94,7 +114,7 @@ class PostController {
   // Delete post
   static async deletePost(req, res, next) {
     try {
-      await PostService.deletePost(req.params.id, req.user.id);
+      await PostService.deletePost(req.params.id, req.userId);
 
       new SuccessResponse({
         message: "Post deleted successfully",
@@ -111,7 +131,7 @@ class PostController {
       const files = req.files || [];
       const post = await PostService.updatePost(
         req.params.id,
-        req.user.id,
+        req.userId,
         req.body,
         files
       );

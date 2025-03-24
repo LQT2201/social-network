@@ -8,7 +8,7 @@ class CommentController {
       const { postId } = req.params;
 
       const comment = await CommentService.createComment(
-        req.user.id,
+        req.userId,
         postId,
         content
       );
@@ -28,7 +28,7 @@ class CommentController {
       const { commentId } = req.params;
 
       const reply = await CommentService.createReply(
-        req.user.id,
+        req.userId,
         commentId,
         content
       );
@@ -46,7 +46,7 @@ class CommentController {
     try {
       const { commentId } = req.params;
 
-      const comment = await CommentService.likeComment(req.user.id, commentId);
+      const comment = await CommentService.likeComment(req.userId, commentId);
 
       new SuccessResponse({
         message: "Comment like updated successfully",

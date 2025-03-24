@@ -10,22 +10,40 @@ cloudinary.config({
 
 const uploadFile = async (file) => {
   try {
-    // Determine resource type based on mimetype
-    const resourceType = file.mimetype.startsWith("image/") ? "image" : "video";
+    console.log("file", file);
 
-    // Upload file to Cloudinary
-    const result = await cloudinary.uploader.upload(file.path, {
-      resource_type: resourceType,
+    // Validate file
+    if (!file || !file.path) {
+      throw new BadRequestError("Invalid file: missing file path");
+    }
+
+    // Validate file type
+    if (
+      !file.mimetype ||
+      (!file.mimetype.startsWith("image/") &&
+        !file.mimetype.startsWith("video/"))
+    ) {
+      throw new BadRequestError(
+        "Invalid file type: only images and videos are allowed"
+      );
+    }
+
+    // Determine resource type and options
+    const isImage = file.mimetype.startsWith("image/");
+    const uploadOptions = {
+      resource_type: isImage ? "image" : "video",
       folder: "social_media_uploads",
-      transformation:
-        resourceType === "image"
-          ? [{ width: 1000, crop: "limit" }, { quality: "auto:good" }]
-          : [{ quality: "auto:good" }],
-    });
+      transformation: isImage
+        ? [{ width: 1000, crop: "limit" }, { quality: "auto:good" }]
+        : [{ quality: "auto:good" }],
+    };
+
+    // Upload main file
+    const result = await cloudinary.uploader.upload(file.path, uploadOptions);
 
     // Generate thumbnail for videos
     let thumbnail = null;
-    if (resourceType === "video") {
+    if (!isImage) {
       thumbnail = await cloudinary.uploader.upload(file.path, {
         resource_type: "video",
         folder: "social_media_uploads/thumbnails",
@@ -37,21 +55,49 @@ const uploadFile = async (file) => {
       });
     }
 
+    // Return structured response
     return {
+      type: isImage ? "image" : "video",
       url: result.secure_url,
       publicId: result.public_id,
-      thumbnail: thumbnail ? thumbnail.secure_url : null,
+      thumbnail: thumbnail?.secure_url || null,
       dimensions: {
         width: result.width,
         height: result.height,
       },
+      metadata: {
+        format: result.format,
+        size: result.bytes,
+        originalName: file.originalname,
+      },
     };
   } catch (error) {
     console.error("Upload error:", error);
-    throw new BadRequestError("File upload failed");
+
+    // Clean up if upload failed
+    if (error.public_id) {
+      try {
+        await cloudinary.uploader.destroy(error.public_id);
+      } catch (cleanupError) {
+        console.error("Cleanup error:", cleanupError);
+      }
+    }
+
+    throw new BadRequestError(error.message || "File upload failed");
+  }
+};
+
+const deleteFile = async (publicId) => {
+  try {
+    const result = await cloudinary.uploader.destroy(publicId);
+    return result.result === "ok";
+  } catch (error) {
+    console.error("Delete error:", error);
+    return false;
   }
 };
 
 module.exports = {
   uploadFile,
+  deleteFile,
 };
