@@ -20,7 +20,7 @@ import name from "@/public/images/name.PNG";
 import Link from "next/link";
 import CustomButton from "@/app/_components/CustomButton";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from "@/redux/slices/authSlice";
+import { registerUser } from "@/redux/features/authSlice";
 
 // Định nghĩa schema bằng Zod
 const formSchema = z.object({

@@ -128,7 +128,7 @@ class PostService {
         .populate("author", "username avatar")
         .populate({
           path: "stats.comments",
-          select: "content author createdAt",
+
           populate: { path: "author", select: "username avatar" },
         })
         .sort({ createdAt: -1 })

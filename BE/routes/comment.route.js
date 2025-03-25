@@ -15,4 +15,6 @@ router.post("/comments/:commentId/reply", CommentController.createReply);
 // Like/unlike comment
 router.post("/comments/:commentId/like", CommentController.likeComment);
 
+router.get("/posts/:postId/comments", CommentController.getPostComments);
+
 module.exports = router;

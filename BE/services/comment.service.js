@@ -203,6 +203,46 @@ class CommentService {
       throw error;
     }
   }
+
+  static async getPostComments(postId, page = 1, limit = 10) {
+    // Get root comments first
+    const skip = (page - 1) * limit;
+
+    const [comments, total] = await Promise.all([
+      Comment.find({ post: postId, parentId: null })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("author", "username avatar")
+        .lean(),
+      Comment.countDocuments({ post: postId, parentId: null }),
+    ]);
+
+    // Get replies for each comment
+    const commentsWithReplies = await Promise.all(
+      comments.map(async (comment) => {
+        const replies = await Comment.find({ parentId: comment._id })
+          .sort({ createdAt: 1 })
+          .populate("author", "username avatar")
+          .lean();
+
+        return {
+          ...comment,
+          replies,
+        };
+      })
+    );
+
+    return {
+      comments: commentsWithReplies,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
 }
 
 module.exports = CommentService;

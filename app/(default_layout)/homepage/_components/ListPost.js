@@ -1,53 +1,64 @@
 "use client";
 import React from "react";
+import { formatDistanceToNow } from "date-fns";
 import CardPost from "./CardPost";
+// import LoadingSpinner from "@/components/ui/loading-spinner";
 
-const fakePosts = [
-  {
-    id: 1,
-    username: "michilin.boy",
-    postedAt: "6 days ago",
-    caption: "Canon, CON CAC 204 MARK IV",
-    likes: 166,
-    liked: false,
-    image: "/images/test-1.jpg", // relative to your public folder
-  },
-  {
-    id: 2,
-    username: "photo.lover",
-    postedAt: "4 days ago",
-    caption: "Sunset over the mountains",
-    likes: 205,
-    image: "/images/test-1.jpg",
-    liked: true,
-  },
-  {
-    id: 3,
-    username: "urban.style",
-    postedAt: "3 days ago",
-    caption: "City life at its best",
-    likes: 300,
-    image: "/images/test-1.jpg",
-    liked: false,
-  },
-  {
-    id: 4,
-    username: "nature.fan",
-    postedAt: "2 days ago",
-    caption: "Exploring the forest",
-    likes: 150,
-    image: "/images/test-1.jpg",
-    liked: false,
-  },
-];
+const ListPost = ({
+  posts = [],
+  isLoading,
+  error,
+  onLike,
+  onCommentClick,
+  onLoadMore,
+  hasMore,
+}) => {
+  if (error) {
+    return <div className="text-red-500 text-center p-4">{error}</div>;
+  }
 
-const ListPost = ({ onCommentClick }) => {
+  if (isLoading && posts.length === 0) {
+    return <div className="text-center p-4">Đang tải...</div>;
+  }
+
   return (
-    <>
-      {fakePosts.map((post) => (
-        <CardPost key={post.id} post={post} onCommentClick={onCommentClick} />
+    <div className="space-y-4">
+      {posts.map((post) => (
+        <CardPost
+          key={post._id}
+          post={{
+            id: post._id,
+            username: post.author.username,
+            postedAt: formatDistanceToNow(new Date(post.createdAt), {
+              addSuffix: true,
+            }),
+            caption: post.content,
+            likes: post.stats.likes.length,
+            liked: post.stats.likes.includes(post.currentUserId),
+            image: post.media?.[0]?.url,
+            comments: post.stats.comments,
+            shares: post.stats.shares.length,
+          }}
+          onLike={() => onLike(post._id)}
+          onCommentClick={() => onCommentClick(post._id)}
+        />
       ))}
-    </>
+
+      {isLoading && posts.length > 0 && (
+        <div className="text-center p-4">
+          <div>Đang tải...</div>
+        </div>
+      )}
+
+      {hasMore && !isLoading && (
+        <button
+          onClick={onLoadMore}
+          className="w-full py-2 text-blue-600 hover:bg-gray-50 rounded-md"
+        >
+          Tải thêm bài viết
+        </button>
+      )}
+    </div>
   );
 };
 

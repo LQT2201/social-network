@@ -19,7 +19,7 @@ import name from "@/public/images/name.PNG";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/redux/hook"; // custom hooks cho Redux
-import { login, loginWithGoogle } from "@/redux/slices/authSlice"; // Async thunk login
+import { login, loginWithGoogle } from "@/redux/features/authSlice"; // Async thunk login
 import CustomButton from "@/app/_components/CustomButton";
 import { Bird, Facebook } from "lucide-react";
 

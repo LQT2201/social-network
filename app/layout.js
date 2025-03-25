@@ -3,6 +3,7 @@ import "@/app/_styles/global.css";
 import { Readex_Pro } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ClientReduxProvider from "@/app/StoreProvider";
+import { Toaster } from "react-hot-toast";
 
 const readex_pro = Readex_Pro({ subsets: ["vietnamese", "latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }) {
         <ClientReduxProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </ClientReduxProvider>
+        <Toaster />
       </body>
     </html>
   );

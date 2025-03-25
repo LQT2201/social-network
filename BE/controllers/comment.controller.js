@@ -56,6 +56,28 @@ class CommentController {
       next(error);
     }
   }
+
+  static async getPostComments(req, res, next) {
+    try {
+      console.log("Fetching comments for post:");
+
+      const { postId } = req.params;
+      const { page = 1, limit = 10 } = req.query;
+
+      const comments = await CommentService.getPostComments(
+        postId,
+        parseInt(page),
+        parseInt(limit)
+      );
+
+      new SuccessResponse({
+        message: "Comments retrieved successfully",
+        metadata: comments,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = CommentController;

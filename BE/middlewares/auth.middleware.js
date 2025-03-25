@@ -24,6 +24,7 @@ const authentication = async (req, res, next) => {
 
     // 3. Lấy access token từ headers
     const authHeader = req.headers[HEADER.AUTHORIZATION];
+
     const accessToken = authHeader.split(" ")[1];
     if (!accessToken) {
       throw new AuthFailureError("Invalid request: no access token provided");
@@ -32,6 +33,10 @@ const authentication = async (req, res, next) => {
     // 4. Xác minh token với publicKey của keyStore
     const decodedUser = JWT.verify(accessToken, keyStore.publicKey);
 
+    if (!decodedUser) {
+      throw new AuthFailureError("Invalid access token");
+    }
+
     // 5. Kiểm tra userId từ token có khớp với userId trong request không
     if (userId !== decodedUser.userId) {
       throw new AuthFailureError("Invalid userId in token");
@@ -39,8 +44,6 @@ const authentication = async (req, res, next) => {
 
     // 6. Nếu tất cả đúng, lưu keyStore vào request để sử dụng tiếp
     req.userId = userId;
-
-    console.log("Authentication middleware success");
 
     // 7. Tiếp tục xử lý request
     return next();

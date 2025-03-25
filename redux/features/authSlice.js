@@ -97,6 +97,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.metadata.user;
 
+        console.log(action.payload);
+
         // Lưu token vào localStorage
         localStorage.setItem(
           "accessToken",
@@ -106,6 +108,7 @@ const authSlice = createSlice({
           "refreshToken",
           action.payload.metadata.tokens.refreshToken
         );
+        localStorage.setItem("x-client-id", action.payload.metadata.user._id);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -130,6 +133,7 @@ const authSlice = createSlice({
           "refreshToken",
           action.payload.metadata.tokens.refreshToken
         );
+        localStorage.setItem("x-client-id", action.payload.metadata.user._id);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -139,9 +143,13 @@ const authSlice = createSlice({
       // Xử lý logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("x-client-id");
       });
   },
 });
 
 export const { resetError, setUser } = authSlice.actions;
+export const selectUser = (state) => state.auth.user;
 export default authSlice.reducer;
