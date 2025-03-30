@@ -72,6 +72,7 @@ app.use((error, req, res, next) => {
 const PORT = process.env.PORT || 4000;
 const server = http.createServer(app);
 const socketService = new SocketService(server);
+app.set("socketService", socketService);
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

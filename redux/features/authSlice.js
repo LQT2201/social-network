@@ -1,79 +1,59 @@
-// src/redux/slices/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "@/lib/axios"; // Sử dụng Axios instance đã cấu hình
+import { AuthService } from "@/services/auth.service";
 
-// Async thunk để làm mới access token
-export const refreshAccessToken = createAsyncThunk(
-  "auth/refreshToken",
-  async (_, { rejectWithValue }) => {
-    try {
-      // Lấy refreshToken từ localStorage
-      const refreshToken = localStorage.getItem("refreshToken");
-      const response = await axios.post("/auth/handlerefreshtoken", {
-        refreshToken,
-      });
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
-
-// Async thunk để xử lý đăng ký
-export const registerUser = createAsyncThunk(
-  "auth/register",
-  async (userData, { rejectWithValue }) => {
-    try {
-      const response = await axios.post("/auth/signup", userData);
-      console.log("Register response:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Register error:", error);
-      if (error.response) {
-        return rejectWithValue(error.response.data);
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không thể kết nối đến server" });
-      } else {
-        return rejectWithValue({ message: "Đã xảy ra lỗi không xác định" });
-      }
-    }
-  }
-);
-
-// Async thunk để xử lý đăng nhập
-export const login = createAsyncThunk(
-  "auth/login",
-  async (userData, { rejectWithValue }) => {
-    try {
-      const response = await axios.post("/auth/signin", userData);
-      console.log("Login response:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Login error:", error);
-      if (error.response) {
-        return rejectWithValue(error.response.data);
-      } else if (error.request) {
-        return rejectWithValue({ message: "Không thể kết nối đến server" });
-      } else {
-        return rejectWithValue({ message: "Đã xảy ra lỗi không xác định" });
-      }
-    }
-  }
-);
-
-// Async thunk để xử lý đăng xuất
-export const logout = createAsyncThunk("auth/logout", async () => {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  return null;
-});
-
-// Khởi tạo initialState
 const initialState = {
   user: null,
   loading: false,
   error: null,
 };
+
+// Async thunks
+export const registerUser = createAsyncThunk(
+  "auth/register",
+  async (userData, { rejectWithValue }) => {
+    try {
+      const metadata = await AuthService.register(userData);
+      return metadata;
+    } catch (error) {
+      if (error.response) {
+        return rejectWithValue(error.response.data);
+      }
+      return rejectWithValue({ message: "Không thể kết nối đến server" });
+    }
+  }
+);
+
+export const login = createAsyncThunk(
+  "auth/login",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const metadata = await AuthService.login(credentials);
+      return metadata;
+    } catch (error) {
+      if (error.response) {
+        return rejectWithValue(error.response.data);
+      }
+      return rejectWithValue({ message: "Không thể kết nối đến server" });
+    }
+  }
+);
+
+export const refreshAccessToken = createAsyncThunk(
+  "auth/refreshToken",
+  async (_, { rejectWithValue }) => {
+    try {
+      const metadata = await AuthService.refreshToken();
+      return metadata;
+    } catch (error) {
+      return rejectWithValue(error.response?.data);
+    }
+  }
+);
+
+export const logout = createAsyncThunk("auth/logout", async () => {
+  AuthService.logout();
+  return null;
+});
 
 const authSlice = createSlice({
   name: "auth",
@@ -88,68 +68,47 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Xử lý registerUser
+      // Register
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.metadata.user;
-
-        console.log(action.payload);
-
-        // Lưu token vào localStorage
-        localStorage.setItem(
-          "accessToken",
-          action.payload.metadata.tokens.accessToken
-        );
-        localStorage.setItem(
-          "refreshToken",
-          action.payload.metadata.tokens.refreshToken
-        );
-        localStorage.setItem("x-client-id", action.payload.metadata.user._id);
+        state.user = action.payload.user;
+        localStorage.setItem("x-client-id", action.payload.user._id);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload.message || "Đã xảy ra lỗi";
+        state.error = action.payload?.message || "Đã xảy ra lỗi";
       })
 
-      // Xử lý login
+      // Login
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.metadata.user;
-
-        // Lưu token vào localStorage
-        localStorage.setItem(
-          "accessToken",
-          action.payload.metadata.tokens.accessToken
-        );
-        localStorage.setItem(
-          "refreshToken",
-          action.payload.metadata.tokens.refreshToken
-        );
-        localStorage.setItem("x-client-id", action.payload.metadata.user._id);
+        state.user = action.payload.user;
+        localStorage.setItem("x-client-id", action.payload.user._id);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload.message || "Đã xảy ra lỗi";
+        state.error = action.payload?.message || "Đã xảy ra lỗi";
       })
 
-      // Xử lý logout
+      // Logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("x-client-id");
       });
   },
 });
 
-export const { resetError, setUser } = authSlice.actions;
+// Selectors
 export const selectUser = (state) => state.auth.user;
+export const selectAuthLoading = (state) => state.auth.loading;
+export const selectAuthError = (state) => state.auth.error;
+
+export const { resetError, setUser } = authSlice.actions;
 export default authSlice.reducer;

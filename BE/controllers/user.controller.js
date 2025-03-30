@@ -1,27 +1,21 @@
-// controllers/userController.js
-const User = require("../models/user.model");
+const { SuccessResponse } = require("../core/success.response");
+const UserService = require("../services/user.service");
 
-// Đăng ký người dùng mới
-const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+// Get current user
+class UserController {
+  static getCurrentUser = async (req, res, next) => {
+    try {
+      const clientId = req.userId;
 
-  try {
-    const user = new User({ name, email, password });
-    await user.save();
-    res.status(201).json(user);
-  } catch (err) {
-    res.status(400).json({ message: "Error registering user" });
-  }
-};
-
-// Lấy thông tin người dùng
-const getUserProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    res.status(200).json(user);
-  } catch (err) {
-    res.status(400).json({ message: "Error fetching user profile" });
-  }
-};
-
-module.exports = { registerUser, getUserProfile };
+      const user = await UserService.getUserById(clientId);
+      new SuccessResponse({
+        message: "User retrieved successfully",
+        metadata: user,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+// Update exports to include getCurrentUser
+module.exports = UserController;

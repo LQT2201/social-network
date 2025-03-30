@@ -1,8 +1,31 @@
 "use client";
-import React from "react";
+import React, { Suspense } from "react";
 import { formatDistanceToNow } from "date-fns";
-import CardPost from "./CardPost";
-// import LoadingSpinner from "@/components/ui/loading-spinner";
+import dynamic from "next/dynamic";
+import PostSkeleton from "./card-post/PostSkeleton";
+import { formatMediaFiles } from "@/utils/mediaFormatter";
+
+const CardPost = dynamic(() => import("./card-post/CardPost"), {
+  loading: () => <PostSkeleton />,
+  ssr: false,
+});
+
+const LoadingPosts = () => (
+  <div className="space-y-4">
+    {[...Array(3)].map((_, index) => (
+      <PostSkeleton key={`skeleton-${index}`} />
+    ))}
+  </div>
+);
+
+const LoadMoreButton = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="w-full py-2 text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
+  >
+    Tải thêm bài viết
+  </button>
+);
 
 const ListPost = ({
   posts = [],
@@ -14,50 +37,44 @@ const ListPost = ({
   hasMore,
 }) => {
   if (error) {
-    return <div className="text-red-500 text-center p-4">{error}</div>;
+    return (
+      <div className="text-red-500 text-center p-4 rounded-lg bg-red-50">
+        {error}
+      </div>
+    );
   }
 
-  if (isLoading && posts.length === 0) {
-    return <div className="text-center p-4">Đang tải...</div>;
-  }
+  const formatPost = (post) => ({
+    id: post._id,
+    username: post.author.username,
+    postedAt: formatDistanceToNow(new Date(post.createdAt), {
+      addSuffix: true,
+    }),
+    caption: post.content,
+    like: post.stats.likes,
+    likes: post.stats.likes.length,
+    liked: post.stats.likes.includes(localStorage.getItem("x-client-id")),
+    media: formatMediaFiles(post.media),
+    comments: post.stats.comments,
+    shares: post.stats.shares.length,
+    author: post.author,
+  });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mt-4">
       {posts.map((post) => (
-        <CardPost
-          key={post._id}
-          post={{
-            id: post._id,
-            username: post.author.username,
-            postedAt: formatDistanceToNow(new Date(post.createdAt), {
-              addSuffix: true,
-            }),
-            caption: post.content,
-            likes: post.stats.likes.length,
-            liked: post.stats.likes.includes(post.currentUserId),
-            image: post.media?.[0]?.url,
-            comments: post.stats.comments,
-            shares: post.stats.shares.length,
-          }}
-          onLike={() => onLike(post._id)}
-          onCommentClick={() => onCommentClick(post._id)}
-        />
+        <Suspense key={post._id} fallback={<PostSkeleton />}>
+          <CardPost
+            post={formatPost(post)}
+            onLike={() => onLike(post._id)}
+            onCommentClick={() => onCommentClick(post._id)}
+          />
+        </Suspense>
       ))}
 
-      {isLoading && posts.length > 0 && (
-        <div className="text-center p-4">
-          <div>Đang tải...</div>
-        </div>
-      )}
+      {isLoading && <LoadingPosts />}
 
-      {hasMore && !isLoading && (
-        <button
-          onClick={onLoadMore}
-          className="w-full py-2 text-blue-600 hover:bg-gray-50 rounded-md"
-        >
-          Tải thêm bài viết
-        </button>
-      )}
+      {hasMore && !isLoading && <LoadMoreButton onClick={onLoadMore} />}
     </div>
   );
 };

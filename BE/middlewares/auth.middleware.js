@@ -26,6 +26,7 @@ const authentication = async (req, res, next) => {
     const authHeader = req.headers[HEADER.AUTHORIZATION];
 
     const accessToken = authHeader.split(" ")[1];
+
     if (!accessToken) {
       throw new AuthFailureError("Invalid request: no access token provided");
     }

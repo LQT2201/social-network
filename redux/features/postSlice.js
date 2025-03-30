@@ -1,24 +1,29 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "@/lib/axios";
+import { PostService } from "@/services/post.service";
 
-// Async thunks
+// Async thunks using service
 export const fetchPosts = createAsyncThunk(
   "posts/fetchPosts",
-  async (
-    { page = 1, limit = 10, visibility = "public" },
-    { rejectWithValue }
-  ) => {
+  async (params, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/posts", {
-        params: { page, limit, visibility },
-      });
-      // Return only metadata from response
-      return response.data.metadata;
+      return await PostService.fetchPosts(params);
     } catch (error) {
-      if (error.response) {
-        return rejectWithValue(error.response.data);
-      }
-      return rejectWithValue({ message: "Không thể kết nối đến server" });
+      return rejectWithValue(
+        error.response?.data || { message: "Không thể kết nối đến server" }
+      );
+    }
+  }
+);
+
+export const fetchPostById = createAsyncThunk(
+  "posts/fetchPostById",
+  async (postId, { rejectWithValue }) => {
+    try {
+      return await PostService.getPostById(postId);
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Không thể tải bài viết" }
+      );
     }
   }
 );
@@ -27,17 +32,11 @@ export const createPost = createAsyncThunk(
   "posts/createPost",
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await axios.post("/posts", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return response.data.metadata;
+      return await PostService.createPost(formData);
     } catch (error) {
-      if (error.response) {
-        return rejectWithValue(error.response.data);
-      }
-      return rejectWithValue({ message: "Không thể tạo bài viết" });
+      return rejectWithValue(
+        error.response?.data || { message: "Không thể tạo bài viết" }
+      );
     }
   }
 );
@@ -46,8 +45,8 @@ export const likePost = createAsyncThunk(
   "posts/likePost",
   async (postId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`/posts/${postId}/like`);
-      return { postId, data: response.data.metadata };
+      const data = await PostService.likePost(postId);
+      return { postId, data };
     } catch (error) {
       return rejectWithValue(
         error.response?.data || { message: "Không thể thực hiện thao tác" }
@@ -60,7 +59,7 @@ export const deletePost = createAsyncThunk(
   "posts/deletePost",
   async (postId, { rejectWithValue }) => {
     try {
-      await axios.delete(`/posts/${postId}`);
+      await PostService.deletePost(postId);
       return postId;
     } catch (error) {
       return rejectWithValue(
@@ -70,66 +69,10 @@ export const deletePost = createAsyncThunk(
   }
 );
 
-// Add new thunk for creating comments
-export const addComment = createAsyncThunk(
-  "posts/addComment",
-  async ({ postId, content, parentComment }, { rejectWithValue }) => {
-    try {
-      const response = await axios.post(`/comments/posts/${postId}/comments`, {
-        content,
-        parentComment,
-      });
-      return {
-        postId,
-        comment: response.data.metadata,
-      };
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { message: "Không thể thêm bình luận" }
-      );
-    }
-  }
-);
-
-// Add new thunk for fetching comments
-export const fetchComments = createAsyncThunk(
-  "posts/fetchComments",
-  async (postId, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(`/comments/posts/${postId}/comments`);
-      return response.data.metadata;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { message: "Không thể tải bình luận" }
-      );
-    }
-  }
-);
-
-export const replyComment = createAsyncThunk(
-  "posts/replyComment",
-  async ({ commentId, content }, { rejectWithValue }) => {
-    try {
-      const response = await axios.post(
-        `/comments/comments/${commentId}/reply`,
-        {
-          content,
-        }
-      );
-      return response.data.metadata;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data || { message: "Không thể trả lời bình luận" }
-      );
-    }
-  }
-);
-
 const initialState = {
   items: [],
   status: "idle",
   error: null,
-  selectedPost: null,
   pagination: {
     page: 1,
     limit: 10,
@@ -139,6 +82,11 @@ const initialState = {
   filters: {
     sort: "-createdAt",
     visibility: "public",
+  },
+  activePost: {
+    data: null,
+    status: "idle",
+    error: null,
   },
 };
 
@@ -156,6 +104,14 @@ const postsSlice = createSlice({
       state.error = null;
     },
     resetPosts: () => initialState,
+    clearActivePost: (state) => {
+      state.activePost = initialState.activePost;
+    },
+    cleảnSelectedPost: (state) => {
+      state.selectedPost = null;
+      state.selectedPostStatus = "idle";
+      state.selectedPostError = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -211,28 +167,19 @@ const postsSlice = createSlice({
         state.pagination.total -= 1;
       })
 
-      // Add Comment
-      .addCase(addComment.fulfilled, (state, action) => {
-        const post = state.items.find((p) => p._id === action.payload.postId);
-        if (post) {
-          post.stats.comments.push(action.payload.comment);
-        }
+      .addCase(fetchPostById.pending, (state) => {
+        // Fetch Post By Id
+        state.activePost.status = "loading";
+        state.activePost.error = null;
+      })
+      .addCase(fetchPostById.fulfilled, (state, action) => {
+        state.activePost.status = "succeeded";
+        state.activePost.data = action.payload;
       })
 
-      // Reply Comment
-      .addCase(replyComment.fulfilled, (state, action) => {
-        const post = state.items.find((p) => p._id === action.payload.post);
-        if (post) {
-          post.stats.comments.push(action.payload);
-        }
-      })
-
-      // Fetch Comments
-      .addCase(fetchComments.fulfilled, (state, action) => {
-        const post = state.items.find((p) => p._id === action.payload.postId);
-        if (post) {
-          post.stats.comments = action.payload.comments;
-        }
+      .addCase(fetchPostById.rejected, (state, action) => {
+        state.activePost.status = "failed";
+        state.activePost.error = action.payload?.message;
       });
   },
 });
@@ -242,6 +189,7 @@ export const selectPostStatus = (state) => state.posts.status;
 export const selectPostError = (state) => state.posts.error;
 export const selectPagination = (state) => state.posts.pagination;
 export const selectFilters = (state) => state.posts.filters;
+export const selectPostDetails = (state) => state.posts.postDetails;
 
 // Add new selectors for specific post data
 export const selectPostComments = (state, postId) => {
@@ -262,7 +210,21 @@ export const selectPostMetadata = (state, postId) => {
 export const selectPostById = (state, postId) =>
   state.posts.items.find((post) => post._id === postId);
 
-export const { setSelectedPost, updateFilters, resetError, resetPosts } =
-  postsSlice.actions;
+export const {
+  setSelectedPost,
+  updateFilters,
+  resetError,
+  resetPosts,
+  clearActivePost,
+} = postsSlice.actions;
+
+export const selectSelectedPost = (state) => state.posts.selectedPost;
+export const selectSelectedPostStatus = (state) =>
+  state.posts.selectedPostStatus;
+export const selectSelectedPostError = (state) => state.posts.selectedPostError;
+
+export const selectActivePost = (state) => state.posts.activePost.data;
+export const selectActivePostStatus = (state) => state.posts.activePost.status;
+export const selectActivePostError = (state) => state.posts.activePost.error;
 
 export default postsSlice.reducer;

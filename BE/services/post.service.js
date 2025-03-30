@@ -158,7 +158,6 @@ class PostService {
         .populate("author", "username avatar")
         .populate({
           path: "stats.comments",
-          select: "content author parentComment createdAt",
           populate: { path: "author", select: "username avatar" },
         })
         .populate("stats.likes", "username avatar")

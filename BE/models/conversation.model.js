@@ -3,54 +3,15 @@ const mongoose = require("mongoose");
 const DOCUMENT_NAME = "Conversation";
 const COLLECTION_NAME = "Conversations";
 
-const conversationSchema = new mongoose.Schema(
+const convensationSchema = new mongoose.Schema(
   {
     participants: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
+        required: true,
       },
     ],
-    messages: [
-      {
-        sender: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        content: {
-          type: String,
-          required: true,
-        },
-        media: [
-          {
-            type: String,
-            url: String,
-          },
-        ],
-        readBy: [
-          {
-            user: {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: "User",
-            },
-            readAt: {
-              type: Date,
-              default: Date.now,
-            },
-          },
-        ],
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
-    isPinned: {
-      type: Map,
-      of: Boolean,
-      default: new Map(),
-    },
     lastMessage: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Message",
@@ -60,9 +21,37 @@ const conversationSchema = new mongoose.Schema(
       enum: ["private", "group"],
       default: "private",
     },
+    name: {
+      type: String,
+      trim: true,
+      required: function () {
+        return this.type === "group";
+      },
+    },
+    admin: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: function () {
+        return this.type === "group";
+      },
+    },
+    unreadCount: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        count: {
+          type: Number,
+          default: 0,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
     collection: COLLECTION_NAME,
   }
 );
+
+module.exports = mongoose.model(DOCUMENT_NAME, convensationSchema);

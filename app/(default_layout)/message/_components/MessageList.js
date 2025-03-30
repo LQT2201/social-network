@@ -3,7 +3,9 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import MessageItem from "./MessageItem";
 
-const MessageList = () => {
+const MessageList = ({ onlineUsers }) => {
+  console.log("Online User messasge list: ", onlineUsers);
+
   const pinnedMessages = [
     {
       id: 1,
