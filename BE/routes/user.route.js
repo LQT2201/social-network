@@ -1,12 +1,17 @@
-// routes/userRoutes.js
 const express = require("express");
+const router = express.Router();
 const UserController = require("../controllers/user.controller");
 const authentication = require("../middlewares/auth.middleware");
 
-const router = express.Router();
+// Apply authentication to all routes
 router.use(authentication);
 
-// Add the getCurrentUser route
-router.get("/current", authentication, UserController.getCurrentUser);
+// User routes
+router.get("/current", UserController.getCurrentUser);
+router.get("/search", UserController.searchUsers);
+router.get("/all", UserController.getAllUsers);
+router.get("/following", UserController.getFollowingUsers);
+router.get("/follow-status/:targetUserId", UserController.checkFollowStatus);
+router.get("/:userId", UserController.getUserById);
 
 module.exports = router;

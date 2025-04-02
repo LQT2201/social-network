@@ -1,0 +1,223 @@
+{
+  "info": {
+    "name": "Messages API",
+    "description": "Collection for testing message and conversation endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Conversations",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/messages/conversations",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "messages", "conversations"]
+        }
+      }
+    },
+    {
+      "name": "Get Messages in Conversation",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/messages/{{conversationId}}/messages?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "messages", "{{conversationId}}", "messages"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Send Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"conversationId\": \"{{conversationId}}\",\n    \"content\": \"Hello, this is a test message\",\n    \"media\": [],\n    \"replyTo\": null\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/messages/send",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "messages", "send"]
+        }
+      }
+    },
+    {
+      "name": "Mark as Read",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/messages/{{conversationId}}/read",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "messages", "{{conversationId}}", "read"]
+        }
+      }
+    },
+    {
+      "name": "Add Reaction",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"type\": \"like\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/messages/messages/{{messageId}}/reactions",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "messages", "messages", "{{messageId}}", "reactions"]
+        }
+      }
+    },
+    {
+      "name": "Delete Message",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/messages/messages/{{messageId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "messages", "messages", "{{messageId}}"]
+        }
+      }
+    },
+    {
+      "name": "Edit Message",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"content\": \"Updated message content\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/messages/messages/{{messageId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "messages", "messages", "{{messageId}}"]
+        }
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    }
+  ]
+}

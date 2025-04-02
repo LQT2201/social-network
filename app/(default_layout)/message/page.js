@@ -14,55 +14,70 @@ import {
   markAsRead,
   setOnlineUsers,
   selectOnlineUsers,
+  selectMessagesByConversation,
+  selectAllConversations,
+  selectActiveConversation,
+  sendMessage,
+  fetchConversations,
+  markConversationAsRead,
 } from "@/redux/features/messageSlice";
+import { Button } from "@/components/ui/button";
 
 const Page = () => {
   const dispatch = useDispatch();
   const [socket, setSocket] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
-  const activeConversation = useSelector(
-    (state) => state.messages.activeConversation
-  );
-  const messages = useSelector(
-    (state) =>
-      state.messages.messagesByConversation[activeConversation?._id] || []
+  const [token, setToken] = useState(null);
+  const [clientId, setClientId] = useState(null);
+  const activeConversation = useSelector(selectActiveConversation);
+  const messages = useSelector((state) =>
+    selectMessagesByConversation(state, activeConversation?._id)
   );
 
   const onlineUsers = useSelector(selectOnlineUsers);
-  const conversations = useSelector((state) => state.messages.conversations);
+  const conversations = useSelector(selectAllConversations);
+
+  // Get authentication info only after component mounts on client
+  useEffect(() => {
+    setToken(localStorage.getItem("accessToken"));
+    setClientId(localStorage.getItem("x-client-id"));
+    dispatch(fetchConversations({ page: 1, limit: 20 }));
+  }, []);
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io("http://localhost:5000", {
-      auth: {
-        "x-client-id": localStorage.getItem("x-client-id"),
-        authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+    if (!token || !clientId) return;
 
-    newSocket.on("connect", () => {
-      console.log("Socket connected");
-    });
-
-    newSocket.on("error", (error) => {
-      console.error("Socket error:", error);
-    });
+    const newSocket = io(
+      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000",
+      {
+        auth: {
+          "x-client-id": clientId,
+          authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     setSocket(newSocket);
 
-    return () => newSocket.disconnect();
-  }, []);
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [token, clientId]);
 
-  // Handle socket events
+  // Handle joining conversation and socket events
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !activeConversation) return;
 
+    // Join the conversation room
+    socket.emit("joinConversation", activeConversation._id);
+
+    // Listen for events
     socket.on("newMessage", ({ conversationId, message }) => {
       dispatch(addMessage({ conversationId, message }));
     });
 
     socket.on("onlineUsers", (users) => {
-      console.log(users, "users");
       dispatch(setOnlineUsers(users));
     });
 
@@ -70,18 +85,29 @@ const Page = () => {
       dispatch(markAsRead({ userId, conversationId }));
     });
 
+    // Cleanup function
     return () => {
+      socket.emit("leaveConversation", activeConversation._id);
       socket.off("newMessage");
+      socket.off("onlineUsers");
       socket.off("messagesRead");
     };
-  }, [socket, dispatch]);
+  }, [socket, dispatch, activeConversation]);
 
   // Load messages when conversation changes
   useEffect(() => {
-    if (activeConversation?._id) {
-      dispatch(fetchMessages(activeConversation._id));
+    if (activeConversation?._id && clientId) {
+      dispatch(fetchMessages({ conversationId: activeConversation._id }));
+
+      // Đánh dấu đã đọc khi chuyển đến cuộc trò chuyện mới
+      dispatch(
+        markConversationAsRead({
+          conversationId: activeConversation._id,
+          userId: clientId,
+        })
+      );
     }
-  }, [activeConversation?._id, dispatch]);
+  }, [activeConversation?._id, dispatch, clientId]);
 
   // Show modal when no conversations exist
   useEffect(() => {
@@ -97,11 +123,22 @@ const Page = () => {
       conversationId: activeConversation._id,
       content,
     });
+
+    dispatch(sendMessage({ conversationId: activeConversation._id, content }));
   };
 
   const handleMarkAsRead = () => {
-    if (!activeConversation?._id) return;
+    if (!activeConversation?._id || !clientId) return;
 
+    // Gọi API để đánh dấu tin nhắn đã đọc
+    dispatch(
+      markConversationAsRead({
+        conversationId: activeConversation._id,
+        userId: clientId,
+      })
+    );
+
+    // Đồng thời gửi thông báo qua socket
     socket.emit("markAsRead", {
       conversationId: activeConversation._id,
     });
@@ -126,7 +163,7 @@ const Page = () => {
             New Chat
           </Button>
         </div>
-        <MessageList onlineUsers={onlineUsers} />
+        <MessageList conversations={conversations} onlineUsers={onlineUsers} />
       </div>
 
       <div className="col-span-7 p-2">
@@ -136,7 +173,7 @@ const Page = () => {
           <div className="flex-1 overflow-y-auto" onScroll={handleMarkAsRead}>
             <ConversationMessages
               messages={messages}
-              currentUserId={localStorage.getItem("x-client-id")}
+              currentUserId={clientId}
             />
           </div>
 

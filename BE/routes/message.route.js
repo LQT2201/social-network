@@ -8,6 +8,8 @@ router.use(authentication);
 
 // Conversation routes
 router.get("/conversations", MessageController.getConversations);
+router.post("/conversations", MessageController.createConversation);
+
 router.get("/:conversationId/messages", MessageController.getMessages);
 
 // Message actions

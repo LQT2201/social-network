@@ -1,30 +1,64 @@
 const MessageService = require("../services/message.service");
 const { SuccessResponse } = require("../core/success.response");
+const { BadRequestError } = require("../core/error.response");
 
 class MessageController {
+  static async createConversation(req, res, next) {
+    try {
+      const { participantId } = req.body;
+      const userId = req.userId;
+      const conversation = await MessageService.createConversation(
+        userId,
+        participantId
+      );
+      new SuccessResponse({
+        message: "Conversation created successfully",
+        metadata: conversation,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
   static async sendMessage(req, res, next) {
     try {
-      const { conversationId, content, media, replyTo } = req.body;
+      const { conversationId, participantId, content, media, replyTo } =
+        req.body;
       const senderId = req.userId;
 
+      let conversation;
+
+      // If conversationId is provided, verify it exists
+      if (conversationId) {
+        conversation = await MessageService.getConversationById(
+          senderId,
+          conversationId
+        );
+      }
+      // If participantId is provided, create or get existing conversation
+      else if (participantId) {
+        conversation = await MessageService.createConversation(
+          senderId,
+          participantId
+        );
+      } else {
+        throw new Error("Either conversationId or participantId is required");
+      }
+
+      // Create the message
       const message = await MessageService.createMessage({
         senderId,
-        conversationId,
+        conversationId: conversation._id.toString(),
         content,
         media,
         replyTo,
       });
 
-      // Emit socket event
-      const socketService = req.app.get("socketService");
-      socketService.emitToConversation(conversationId, "newMessage", {
-        conversationId,
-        message,
-      });
-
       new SuccessResponse({
         message: "Message sent successfully",
-        metadata: message,
+        metadata: {
+          conversation,
+          message,
+        },
       }).send(res);
     } catch (error) {
       next(error);

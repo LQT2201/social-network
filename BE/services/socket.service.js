@@ -99,26 +99,37 @@ class SocketService {
   }
 
   setupMessageHandlers(socket, userId) {
+    socket.on("joinConversation", (conversationId) => {
+      socket.join(conversationId);
+      console.log(`User ${userId} joined room ${conversationId}`);
+    });
+
+    socket.on("leaveConversation", (conversationId) => {
+      socket.leave(conversationId);
+      console.log(`User ${userId} left room ${conversationId}`);
+    });
+
     socket.on("sendMessage", async (data) => {
       try {
-        console.log(`New message in conversation ${conversationId}:`, message);
         const { conversationId, content, media, replyTo } = data;
 
-        // Validate data
         if (!conversationId || !content) {
           throw new Error("Invalid message data");
         }
 
-        // Emit to conversation room
+        const message = {
+          sender: userId,
+          content,
+          isEdited: false,
+          reactions: [],
+          media: media || [],
+          replyTo: replyTo || null,
+          createdAt: new Date(),
+        };
+
         this.io.to(conversationId).emit("newMessage", {
           conversationId,
-          message: {
-            sender: userId,
-            content,
-            media,
-            replyTo,
-            createdAt: new Date(),
-          },
+          message,
         });
       } catch (error) {
         socket.emit("messageError", { error: error.message });

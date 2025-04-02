@@ -227,4 +227,6 @@ export const selectActivePost = (state) => state.posts.activePost.data;
 export const selectActivePostStatus = (state) => state.posts.activePost.status;
 export const selectActivePostError = (state) => state.posts.activePost.error;
 
+export { likePost as unlikePost };
+
 export default postsSlice.reducer;

@@ -1,0 +1,181 @@
+{
+  "info": {
+    "name": "User API",
+    "description": "Collection for testing user endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Current User",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/current",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "current"]
+        }
+      }
+    },
+    {
+      "name": "Search Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/search?query={{searchQuery}}&page={{page}}&limit={{limit}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "search"],
+          "query": [
+            {
+              "key": "query",
+              "value": "{{searchQuery}}"
+            },
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get All Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/all?page={{page}}&limit={{limit}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "all"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Following Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/following?page={{page}}&limit={{limit}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "following"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Check Follow Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/follow-status/{{targetUserId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "follow-status", "{{targetUserId}}"]
+        }
+      }
+    },
+    {
+      "name": "Get User by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "x-client-id",
+            "value": "{{userId}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/{{targetUserId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "{{targetUserId}}"]
+        }
+      }
+    }
+  ]
+}

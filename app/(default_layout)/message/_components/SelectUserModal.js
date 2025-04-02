@@ -1,5 +1,6 @@
+"use client";
 import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
   DialogContent,
@@ -10,42 +11,71 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
-import { createConversation } from "@/redux/features/messageSlice";
+import { Search, Loader2 } from "lucide-react";
+import {
+  createConversation,
+  fetchMessages,
+  selectActiveConversation,
+} from "@/redux/features/messageSlice";
+import {
+  getAllUsers,
+  searchUsers,
+  selectAllUsers,
+  selectSearchResults,
+  selectSearchStatus,
+} from "@/redux/features/userSlice";
 
 const SelectUserModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState("");
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const limit = 20;
+  const activeConversation = useSelector(selectActiveConversation);
+  const allUsers = useSelector(selectAllUsers);
+  const searchResults = useSelector(selectSearchResults);
+  const searchStatus = useSelector(selectSearchStatus);
 
+  // Fetch all users on initial load
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/users/search?query=" + searchTerm);
-        const data = await response.json();
-        setUsers(data.metadata.users);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isOpen && searchTerm) {
-      fetchUsers();
+    if (isOpen) {
+      dispatch(getAllUsers({ page, limit }));
     }
-  }, [searchTerm, isOpen]);
+  }, [isOpen, page, dispatch]);
+
+  // Handle search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm) {
+        dispatch(searchUsers({ query: searchTerm, page: 1, limit }));
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, dispatch]);
 
   const handleUserSelect = async (userId) => {
     try {
-      await dispatch(createConversation({ participantId: userId })).unwrap();
+      const conversation = await dispatch(
+        createConversation({ participantId: userId })
+      ).unwrap();
+      console.log(conversation, "conversation");
+
+      const conversationId = activeConversation._id;
+
+      // console.log(conversationId);
+
+      // dispatch(
+      //   fetchMessages({ conversationId: conversationId, page: 1, limit: 20 })
+      // );
+
       onClose();
     } catch (error) {
       console.error("Error creating conversation:", error);
     }
   };
+
+  const displayedUsers = searchTerm ? searchResults.users : allUsers.users;
+  const loading = searchStatus === "loading";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -65,28 +95,50 @@ const SelectUserModal = ({ isOpen, onClose }) => {
         </div>
 
         <ScrollArea className="h-[300px] pr-4">
+          {!loading && displayedUsers?.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <p>No users found</p>
+            </div>
+          )}
           {loading ? (
             <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
             <div className="space-y-4">
-              {users.map((user) => (
+              {displayedUsers?.map((user) => (
                 <div
                   key={user._id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer"
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
                   onClick={() => handleUserSelect(user._id)}
                 >
                   <Avatar>
-                    <AvatarImage src={user.avatar} />
-                    <AvatarFallback>{user.username[0]}</AvatarFallback>
+                    <AvatarImage src={user.avatar} alt={user.username} />
+                    <AvatarFallback>
+                      {user.username[0].toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">{user.username}</p>
                     <p className="text-sm text-gray-500">{user.email}</p>
                   </div>
+                  {user.isOnline && (
+                    <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                  )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {!loading && allUsers.pagination?.hasMore && !searchTerm && (
+            <div className="mt-4 text-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => prev + 1)}
+              >
+                Load More
+              </Button>
             </div>
           )}
         </ScrollArea>
