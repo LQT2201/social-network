@@ -16,10 +16,20 @@ const nextConfig = {
         pathname: "/**",
         search: "",
       },
+      {
+        protocol: "https",
+        hostname: "res-console.cloudinary.com",
+        port: "",
+        pathname: "/dgtac4atn/**",
+        search: "",
+      },
     ],
   },
   env: {
     BASE_URL: "http://localhost:5000/api/",
+  },
+  images: {
+    domains: ["res-console.cloudinary.com", "res.cloudinary.com"],
   },
 };
 

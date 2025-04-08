@@ -8,7 +8,12 @@ router.use(authentication);
 
 // Conversation routes
 router.get("/conversations", MessageController.getConversations);
+router.get("/conversations/pinned", MessageController.getPinnedConversations);
 router.post("/conversations", MessageController.createConversation);
+router.patch(
+  "/conversations/:conversationId/pin",
+  MessageController.togglePinConversation
+);
 
 router.get("/:conversationId/messages", MessageController.getMessages);
 

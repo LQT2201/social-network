@@ -212,6 +212,56 @@ class MessageController {
       next(error);
     }
   }
+
+  static async togglePinConversation(req, res, next) {
+    try {
+      const { conversationId } = req.params;
+      const userId = req.userId;
+
+      const result = await MessageService.togglePinConversation(
+        userId,
+        conversationId
+      );
+
+      // Emit socket event for real-time updates
+      const socketService = req.app.get("socketService");
+      if (socketService) {
+        socketService.emitToUser(userId, "conversationPinToggled", {
+          conversationId,
+          isPinned: result.isPinned,
+        });
+      }
+
+      new SuccessResponse({
+        message: result.isPinned
+          ? "Conversation pinned successfully"
+          : "Conversation unpinned successfully",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getPinnedConversations(req, res, next) {
+    try {
+      const userId = req.userId;
+      const { page = 1, limit = 20 } = req.query;
+
+      const result = await MessageService.getPinnedConversations(
+        userId,
+        parseInt(page),
+        parseInt(limit)
+      );
+
+      new SuccessResponse({
+        message: "Pinned conversations retrieved successfully",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = MessageController;

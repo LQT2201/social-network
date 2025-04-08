@@ -9,12 +9,17 @@ import {
   selectPostStatus,
   selectPostError,
   selectPagination,
+  selectFollowingPosts,
+  selectFollowingPostsStatus,
+  selectFollowingPostsError,
+  selectFollowingPagination,
+  getFollowingPosts,
 } from "@/redux/features/postSlice";
 import SideNav from "./_components/SideNav";
 
 import TabPost from "./_components/TabPost";
-import CardRecommendation from "./_components/CardRecommendation";
-import SuggestedPostCard from "./_components/SuggetedPostCard";
+import CardRecommendation from "./_components/recommend-section/CardRecommendation";
+import SuggestedPostCard from "./_components/recommend-section/SuggetedPostCard";
 import ListPost from "./_components/ListPost";
 import PostModal from "./_components/post-modal/PostModal";
 import withAuth from "@/hocs/withAuth";
@@ -38,15 +43,18 @@ const HomePage = () => {
 
   // Redux selectors
   const posts = useSelector(selectAllPosts);
-  const status = useSelector(selectPostStatus);
-  const error = useSelector(selectPostError);
-  const pagination = useSelector(selectPagination);
+  const followingPosts = useSelector(selectFollowingPosts);
+  const followingPostsStatus = useSelector(selectFollowingPostsStatus);
+  const followingPostsError = useSelector(selectFollowingPostsError);
+  const followingPagination = useSelector(selectFollowingPagination);
+
   const user = useSelector(selectUser);
-  const isLoading = status === "loading";
+  const isLoading = followingPostsStatus === "loading";
 
   // Fetch posts on component mount
   useEffect(() => {
     dispatch(fetchPosts({ page: 1, limit: 10 }));
+    dispatch(getFollowingPosts({ page: 1, limit: 10 }));
     dispatch(fetchCurrentUser());
   }, [dispatch]);
 
@@ -65,15 +73,23 @@ const HomePage = () => {
 
   // Handle load more posts with memo
   const handleLoadMore = useCallback(() => {
-    if (!isLoading && pagination.page < pagination.totalPages) {
+    if (
+      !isLoading &&
+      followingPagination.page < followingPagination.totalPages
+    ) {
       dispatch(
-        fetchPosts({
-          page: pagination.page + 1,
+        getFollowingPosts({
+          page: followingPagination.page + 1,
           limit: 10,
         })
       );
     }
-  }, [dispatch, isLoading, pagination.page, pagination.totalPages]);
+  }, [
+    dispatch,
+    isLoading,
+    // followingPagination.page,
+    // followingPagination.totalPages,
+  ]);
 
   // Update the comment click handler with memo
   const handleCommentClick = useCallback((postId) => {
@@ -110,13 +126,13 @@ const HomePage = () => {
         <TabPost />
 
         <ListPost
-          posts={posts}
+          posts={followingPosts}
           isLoading={isLoading}
-          error={error}
+          error={followingPostsError}
           onLike={handleLikePost}
           onCommentClick={handleCommentClick}
           onLoadMore={handleLoadMore}
-          hasMore={pagination.page < pagination.totalPages}
+          // hasMore={followingPagination.page < followingPagination.totalPages}
         />
       </div>
 

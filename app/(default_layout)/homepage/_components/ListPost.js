@@ -57,7 +57,7 @@ const ListPost = ({
     media: formatMediaFiles(post.media),
     comments: post.stats.comments,
     shares: post.stats.shares.length,
-    author: post.author,
+    userId: post.author._id,
   });
 
   return (

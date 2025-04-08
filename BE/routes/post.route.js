@@ -5,11 +5,12 @@ const authentication = require("../middlewares/auth.middleware");
 const { uploadCloud } = require("../config/cloudinary.config");
 
 // Public routes
-router.get("/", PostController.getPosts);
-router.get("/:id", PostController.getPostById);
 
 // Protected routes
 router.use(authentication);
+router.get("/following", PostController.getFollowingPosts);
+router.get("/", PostController.getPosts);
+router.get("/:id", PostController.getPostById);
 
 // Create post with media upload
 router.post(

@@ -14,9 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Search, Loader2 } from "lucide-react";
 import {
   createConversation,
-  fetchMessages,
   selectActiveConversation,
-} from "@/redux/features/messageSlice";
+} from "@/redux/features/message";
 import {
   getAllUsers,
   searchUsers,
@@ -58,16 +57,6 @@ const SelectUserModal = ({ isOpen, onClose }) => {
       const conversation = await dispatch(
         createConversation({ participantId: userId })
       ).unwrap();
-      console.log(conversation, "conversation");
-
-      const conversationId = activeConversation._id;
-
-      // console.log(conversationId);
-
-      // dispatch(
-      //   fetchMessages({ conversationId: conversationId, page: 1, limit: 20 })
-      // );
-
       onClose();
     } catch (error) {
       console.error("Error creating conversation:", error);

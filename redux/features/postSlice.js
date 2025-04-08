@@ -69,8 +69,25 @@ export const deletePost = createAsyncThunk(
   }
 );
 
+export const getFollowingPosts = createAsyncThunk(
+  "posts/getFollowingPosts",
+  async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
+    try {
+      return await PostService.getFollowingPosts(page, limit);
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Không thể tải bài viết" }
+      );
+    }
+  }
+);
 const initialState = {
   items: [],
+  followingPosts: {
+    data: [],
+    status: "idle",
+    error: null,
+  },
   status: "idle",
   error: null,
   pagination: {
@@ -115,6 +132,20 @@ const postsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Get Following Posts
+      .addCase(getFollowingPosts.pending, (state) => {
+        state.followingPosts.status = "loading";
+        state.followingPosts.error = null;
+      })
+      .addCase(getFollowingPosts.fulfilled, (state, action) => {
+        state.followingPosts.status = "succeeded";
+        state.followingPosts.data = action.payload;
+      })
+      .addCase(getFollowingPosts.rejected, (state, action) => {
+        state.followingPosts.status = "failed";
+        state.followingPosts.error = action.payload?.message;
+      })
+
       // Fetch Posts
       .addCase(fetchPosts.pending, (state) => {
         state.status = "loading";
@@ -217,6 +248,15 @@ export const {
   resetPosts,
   clearActivePost,
 } = postsSlice.actions;
+
+export const selectFollowingPosts = (state) =>
+  state.posts.followingPosts.data.posts;
+export const selectFollowingPostsStatus = (state) =>
+  state.posts.followingPosts.status;
+export const selectFollowingPostsError = (state) =>
+  state.posts.followingPosts.error;
+export const selectFollowingPagination = (state) =>
+  state.posts.followingPosts.data.pagination;
 
 export const selectSelectedPost = (state) => state.posts.selectedPost;
 export const selectSelectedPostStatus = (state) =>

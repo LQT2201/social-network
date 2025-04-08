@@ -95,7 +95,7 @@ class SocketService {
     this.broadcastOnlineStatus(userId, true);
 
     // Send current online users to the new user
-    socket.emit("onlineUsers", Array.from(this.onlineUsers.keys()));
+    socket.emit("onlineUsers", this.getOnlineUsers());
   }
 
   setupMessageHandlers(socket, userId) {

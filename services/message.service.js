@@ -61,4 +61,29 @@ export const MessageService = {
     });
     return response.data.metadata;
   },
+
+  async togglePinConversation(conversationId) {
+    try {
+      const response = await axios.patch(
+        `/messages/conversations/${conversationId}/pin`
+      );
+      console.log("response", response);
+      return response.data.metadata;
+    } catch (error) {
+      console.error("Error toggling pin status:", error);
+      throw error.response?.data || error.message;
+    }
+  },
+
+  async getPinnedConversations(page = 1, limit = 20) {
+    try {
+      const response = await axios.get(
+        `/messages/conversations/pinned?page=${page}&limit=${limit}`
+      );
+      return response.data.metadata;
+    } catch (error) {
+      console.error("Error fetching pinned conversations:", error);
+      throw error.response?.data || error.message;
+    }
+  },
 };

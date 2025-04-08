@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Pin } from "lucide-react";
 
@@ -10,8 +10,11 @@ const MessageItem = ({
   time,
   unreadCount = 0,
   isOnline = false,
-  isPinned,
 }) => {
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+  console.log("MessageItem render count:", renderCount.current);
+
   // Trích xuất chữ cái đầu tiên của username cho avatar fallback
   const getInitials = () => {
     if (!username) return "?";
@@ -33,9 +36,11 @@ const MessageItem = ({
         )}
       </div>
       <div className="flex-3/5">
-        <p className="line-clamp-1 w-2/3 font-medium">
-          {username || "Unknown"}
-        </p>
+        <div className="flex items-center gap-1">
+          <p className="line-clamp-1 w-2/3 font-medium">
+            {username || "Unknown"}
+          </p>
+        </div>
         <p
           className={`line-clamp-1 ${
             unreadCount > 0 ? "text-gray-900 font-medium" : "text-d-gray"
@@ -44,7 +49,7 @@ const MessageItem = ({
           {lastMessage || "No messages"}
         </p>
       </div>
-      <div className="flex-1/5 flex flex-col items-end gap-2">
+      <div className="flex-1/5 flex flex-col items-end justify-between">
         <span
           className={`text-[10px] ${
             unreadCount > 0 ? "text-gray-900 font-medium" : "text-d-gray"
@@ -52,16 +57,13 @@ const MessageItem = ({
         >
           {time}
         </span>
-        {isPinned && (
-          <div className="bg-yellow-orange rounded-full p-1">
-            <Pin className="size-2.5" />
-          </div>
-        )}
-        {unreadCount > 0 && (
-          <div className="bg-red-500 text-white rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center text-xs font-medium">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </div>
-        )}
+        <div className="flex gap-1">
+          {unreadCount > 0 && (
+            <div className="bg-red-500 text-white rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center text-xs font-medium">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

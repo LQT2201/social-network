@@ -163,13 +163,20 @@ class MessageService {
         })
         .lean();
 
+      // Add isPinned flag to each conversation
+      const conversationsWithPinStatus = conversations.map((conversation) => ({
+        ...conversation,
+        isPinned:
+          conversation.pinnedBy && conversation.pinnedBy.includes(userId),
+      }));
+
       // Get total count for pagination
       const total = await Conversation.countDocuments({
         participants: { $in: [userId] },
       });
 
       return {
-        conversations,
+        conversations: conversationsWithPinStatus,
         pagination: {
           page,
           limit,
@@ -275,6 +282,110 @@ class MessageService {
       return populatedConversation;
     } catch (error) {
       throw new Error(`Failed to create conversation: ${error.message}`);
+    }
+  }
+
+  static async togglePinConversation(userId, conversationId) {
+    try {
+      // Find the conversation and check if user is a participant
+      const conversation = await Conversation.findOne({
+        _id: conversationId,
+        participants: { $in: [userId] },
+      });
+
+      if (!conversation) {
+        throw new NotFoundError(
+          "Conversation not found or user not authorized"
+        );
+      }
+
+      // Check if the conversation is already pinned by this user
+      const isPinned = conversation.pinnedBy.includes(userId);
+
+      if (isPinned) {
+        // Unpin the conversation
+        await Conversation.findByIdAndUpdate(conversationId, {
+          $pull: { pinnedBy: userId },
+        });
+      } else {
+        // Pin the conversation
+        await Conversation.findByIdAndUpdate(conversationId, {
+          $addToSet: { pinnedBy: userId },
+        });
+      }
+
+      // Return the updated conversation
+      const updatedConversation = await Conversation.findById(conversationId)
+        .populate({
+          path: "participants",
+          select: "username avatar isOnline",
+          match: { _id: { $ne: userId } },
+        })
+        .populate({
+          path: "lastMessage",
+          select: "content sender createdAt media readBy",
+          populate: {
+            path: "sender",
+            select: "username avatar",
+          },
+        })
+        .lean();
+
+      return {
+        ...updatedConversation,
+        isPinned: updatedConversation.pinnedBy.includes(userId),
+      };
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      throw new Error(`Failed to toggle pin status: ${error.message}`);
+    }
+  }
+
+  // Return pinned conversations
+  static async getPinnedConversations(userId, page = 1, limit = 20) {
+    try {
+      const conversations = await Conversation.find({
+        participants: { $in: [userId] },
+        pinnedBy: { $in: [userId] },
+      })
+        .sort({ updatedAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate({
+          path: "participants",
+          select: "username avatar isOnline",
+          match: { _id: { $ne: userId } },
+        })
+        .populate({
+          path: "lastMessage",
+          select: "content sender createdAt media readBy",
+          populate: {
+            path: "sender",
+            select: "username avatar",
+          },
+        })
+        .lean();
+
+      // Get total count for pagination
+      const total = await Conversation.countDocuments({
+        participants: { $in: [userId] },
+        pinnedBy: { $in: [userId] },
+      });
+
+      return {
+        conversations,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasMore: page * limit < total,
+        },
+      };
+    } catch (error) {
+      throw new Error(`Failed to get pinned conversations: ${error.message}`);
     }
   }
 }

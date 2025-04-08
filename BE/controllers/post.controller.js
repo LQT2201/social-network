@@ -64,6 +64,20 @@ class PostController {
     }
   }
 
+  // Get posts of following users
+  static async getFollowingPosts(req, res, next) {
+    try {
+      const userId = req.userId;
+      const result = await PostService.getFollowingPosts(userId);
+
+      new SuccessResponse({
+        message: "Following posts retrieved successfully",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
   // Like/Unlike post
   static async likePost(req, res, next) {
     try {

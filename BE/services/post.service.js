@@ -1,6 +1,7 @@
 const Post = require("../models/post.model");
 const { BadRequestError, NotFoundError } = require("../core/error.response");
 const { uploadFile, deleteFile } = require("../utils/upload");
+const User = require("../models/user.model");
 
 class PostService {
   static async createPost(userId, postData, files) {
@@ -172,6 +173,43 @@ class PostService {
       return post;
     } catch (error) {
       throw new BadRequestError("Could not fetch post");
+    }
+  }
+
+  static async getFollowingPosts(userId, page = 1, limit = 10) {
+    try {
+      const user = await User.findById(userId).select("following");
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      console.log(user.following);
+
+      // Fetch posts with pagination
+      const followingPosts = await Post.find({
+        author: { $in: user.following },
+      })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate("author", "username avatar");
+
+      console.log(followingPosts);
+
+      // Count documents using the correct array of user IDs
+      const total = await Post.countDocuments({
+        author: { $in: user.following },
+      });
+
+      return {
+        posts: followingPosts,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+        },
+      };
+    } catch (error) {
+      throw new BadRequestError("Could not get following posts");
     }
   }
 

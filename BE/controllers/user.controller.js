@@ -2,6 +2,18 @@ const { SuccessResponse } = require("../core/success.response");
 const UserService = require("../services/user.service");
 
 class UserController {
+  static async getRecommendUsers(req, res, next) {
+    try {
+      const result = await UserService.getRecommendUsers(req.userId);
+      new SuccessResponse({
+        message: "Recommend users retrieved successfully",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getCurrentUser(req, res, next) {
     try {
       const user = await UserService.getUserById(req.userId);
@@ -89,6 +101,115 @@ class UserController {
       new SuccessResponse({
         message: "User retrieved successfully",
         metadata: user,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateProfile(req, res, next) {
+    try {
+      const { userId } = req.params;
+      const data = req.body;
+      const files = req.files;
+
+      // Handle file uploads
+      if (files) {
+        if (files.avatar) {
+          data.avatar = files.avatar[0].path;
+        }
+        if (files.coverImage) {
+          data.coverImage = files.coverImage[0].path;
+        }
+      }
+
+      const updatedUser = await UserService.updateProfile(userId, data);
+      new SuccessResponse({
+        message: "Profile updated successfully",
+        metadata: updatedUser,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async followUser(req, res, next) {
+    try {
+      const { userId } = req.params;
+      const currentUserId = req.userId;
+
+      const result = await UserService.followUser(currentUserId, userId);
+      new SuccessResponse({
+        message: "Followed successfully",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async unfollowUser(req, res, next) {
+    try {
+      const { userId } = req.params;
+      const currentUserId = req.userId;
+
+      const result = await UserService.unfollowUser(currentUserId, userId);
+      new SuccessResponse({
+        message: "Unfollowed successfully",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getFollowers(req, res, next) {
+    try {
+      const { userId } = req.params;
+      const { page = 1, limit = 20 } = req.query;
+
+      const result = await UserService.getFollowers(
+        userId,
+        parseInt(page),
+        parseInt(limit)
+      );
+      new SuccessResponse({
+        message: "Followers retrieved successfully",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getFollowing(req, res, next) {
+    try {
+      const { userId } = req.params;
+      const { page = 1, limit = 20 } = req.query;
+
+      const result = await UserService.getFollowing(
+        userId,
+        parseInt(page),
+        parseInt(limit)
+      );
+      new SuccessResponse({
+        message: "Following users retrieved successfully",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateUserStatus(req, res, next) {
+    try {
+      const { userId } = req.params;
+      const { status } = req.body;
+
+      const updatedUser = await UserService.updateUserStatus(userId, status);
+      new SuccessResponse({
+        message: "User status updated successfully",
+        metadata: updatedUser,
       }).send(res);
     } catch (error) {
       next(error);

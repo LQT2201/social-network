@@ -8,6 +8,13 @@ export const PostService = {
     return response.data.metadata;
   },
 
+  async getFollowingPosts(page = 1, limit = 10) {
+    const response = await axios.get("/posts/following", {
+      params: { page, limit },
+    });
+    return response.data.metadata;
+  },
+
   async createPost(formData) {
     const response = await axios.post("/posts", formData, {
       headers: { "Content-Type": "multipart/form-data" },

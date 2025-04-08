@@ -1,6 +1,15 @@
 import axios from "@/lib/axios";
 
 export const UserService = {
+  async getRecommendUsers() {
+    try {
+      const response = await axios.get("/users/recommend");
+      return response.data.metadata;
+    } catch (error) {
+      throw new Error(`Failed to get recommend users: ${error.message}`);
+    }
+  },
+
   async getCurrentUser() {
     try {
       const response = await axios.get("/users/current");
@@ -19,6 +28,8 @@ export const UserService = {
           limit,
         },
       });
+
+      console.log("response", response);
       return response.data.metadata;
     } catch (error) {
       throw new Error(`Failed to search users: ${error.message}`);
@@ -33,6 +44,7 @@ export const UserService = {
           limit,
         },
       });
+
       return response.data.metadata;
     } catch (error) {
       throw new Error(`Failed to get all users: ${error.message}`);
@@ -50,15 +62,6 @@ export const UserService = {
       return response.data.metadata;
     } catch (error) {
       throw new Error(`Failed to get following users: ${error.message}`);
-    }
-  },
-
-  async checkFollowStatus(targetUserId) {
-    try {
-      const response = await axios.get(`/users/follow-status/${targetUserId}`);
-      return response.data.metadata.isFollowing;
-    } catch (error) {
-      throw new Error(`Failed to check follow status: ${error.message}`);
     }
   },
 
@@ -84,14 +87,19 @@ export const UserService = {
         formData.append("avatar", userData.avatar);
       }
 
+      // Handle cover image file
+      if (userData.coverImage instanceof File) {
+        formData.append("coverImage", userData.coverImage);
+      }
+
       // Add other user data
       Object.entries(userData).forEach(([key, value]) => {
-        if (key !== "avatar" && value !== undefined) {
+        if (key !== "avatar" && key !== "coverImage" && value !== undefined) {
           formData.append(key, value.toString());
         }
       });
 
-      const response = await axios.patch("/users/profile", formData, {
+      const response = await axios.put("/users/profile", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -102,23 +110,37 @@ export const UserService = {
     }
   },
 
-  async followUser(targetUserId) {
+  async getFollowers(userId, page = 1, limit = 20) {
     try {
-      if (!targetUserId) throw new Error("Target user ID is required");
-      const response = await axios.post(`/users/${targetUserId}/follow`);
+      if (!userId) throw new Error("User ID is required");
+      const response = await axios.get(`/users/${userId}/followers`, {
+        params: { page, limit },
+      });
       return response.data.metadata;
     } catch (error) {
-      throw new Error(`Failed to follow user: ${error.message}`);
+      throw new Error(`Failed to get followers: ${error.message}`);
     }
   },
 
-  async unfollowUser(targetUserId) {
+  async getFollowing(userId, page = 1, limit = 20) {
     try {
-      if (!targetUserId) throw new Error("Target user ID is required");
-      const response = await axios.delete(`/users/${targetUserId}/follow`);
+      if (!userId) throw new Error("User ID is required");
+      const response = await axios.get(`/users/${userId}/following`, {
+        params: { page, limit },
+      });
       return response.data.metadata;
     } catch (error) {
-      throw new Error(`Failed to unfollow user: ${error.message}`);
+      throw new Error(`Failed to get following: ${error.message}`);
+    }
+  },
+
+  async updateUserStatus(status) {
+    try {
+      if (!status) throw new Error("Status is required");
+      const response = await axios.patch("/users/status", { status });
+      return response.data.metadata;
+    } catch (error) {
+      throw new Error(`Failed to update status: ${error.message}`);
     }
   },
 };

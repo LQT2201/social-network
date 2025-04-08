@@ -4,12 +4,22 @@ import MediaGallery from "./MediaGallery";
 import PostActions from "./PostActions";
 
 const CardPost = ({ post, onLike, onCommentClick }) => {
-  const { username, postedAt, caption, likes, liked, comments, shares, like } =
-    post;
+  const {
+    username,
+    postedAt,
+    caption,
+    likes,
+    liked,
+    comments,
+    shares,
+    like,
+    userId,
+  } = post;
 
   return (
     <div className="bg-white rounded-lg shadow-sm mb-4">
       <PostHeader
+        userId={userId}
         username={username}
         postedAt={postedAt}
         avatar={post.author?.avatar}

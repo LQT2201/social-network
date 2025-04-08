@@ -1,39 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Pin } from "lucide-react";
 import MessageItem from "./MessageItem";
 import { useDispatch, useSelector } from "react-redux";
-import { setActiveConversation } from "@/redux/features/messageSlice";
+import {
+  setActiveConversation,
+  selectActiveConversation,
+  selectPinnedConversations,
+  togglePinConversation,
+} from "@/redux/features/message";
 
 const MessageList = ({ conversations = [], onlineUsers = [] }) => {
-  const pinnedMessages = [
-    {
-      id: 1,
-      username: "@itabu",
-      snippet: "You must be gay bro abc xyz",
-      time: "09:02 PM",
-      isPinned: true,
-    },
-    {
-      id: 2,
-      username: "@itabu",
-      snippet: "You must be gay bro abc xyz",
-      time: "09:02 PM",
-      isPinned: true,
-    },
-    {
-      id: 3,
-      username: "@itabu",
-      snippet: "You must be gay bro abc xyz",
-      time: "09:02 PM",
-      isPinned: true,
-    },
-  ];
-
   const dispatch = useDispatch();
+  const activeConversation = useSelector(selectActiveConversation);
+  const pinnedConversations = useSelector(selectPinnedConversations);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+  console.log("MessageList render count:", renderCount.current);
 
-  // Access localStorage only on client-side
   useEffect(() => {
     setCurrentUserId(localStorage.getItem("x-client-id"));
   }, []);
@@ -42,10 +28,16 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
     dispatch(setActiveConversation(conversation));
   };
 
-  // Helper function to get unread count for current user
+  const handleTogglePin = (e, conversationId) => {
+    e.stopPropagation(); // Prevent triggering conversation selection
+    dispatch(togglePinConversation(conversationId));
+  };
+
   const getUserUnreadCount = (conversation) => {
+    const userId = activeConversation?.currentUser?._id || currentUserId;
+
     if (
-      !currentUserId ||
+      !userId ||
       !conversation?.unreadCount ||
       !Array.isArray(conversation.unreadCount)
     ) {
@@ -53,12 +45,28 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
     }
 
     const userUnread = conversation.unreadCount.find(
-      (item) => item.user === currentUserId
+      (item) => item.user === userId
     );
     return userUnread?.count ? Number(userUnread.count) : 0;
   };
 
-  // Check if conversations array exists and has items
+  const filteredConversations = conversations.filter((conversation) => {
+    if (!searchQuery.trim()) return true;
+
+    const participantName = conversation.participants?.[0]?.username || "";
+    return participantName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  // Separate pinned and unpinned conversations using Redux state
+  const pinnedConvs = filteredConversations.filter((conv) =>
+    pinnedConversations.includes(conv._id)
+  );
+
+  const unpinnedConvs = filteredConversations.filter(
+    (conv) => !pinnedConversations.includes(conv._id)
+  );
+
+  // Hiển thị khi không có cuộc trò chuyện nào
   if (!conversations || !conversations.length) {
     return (
       <div>
@@ -71,6 +79,8 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
             type="text"
             placeholder="Search"
             className="rounded-sm bg-white border-none shadow-none pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <div className="py-4 text-center text-gray-500">
@@ -79,6 +89,39 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
       </div>
     );
   }
+
+  const ConversationItem = ({ conversation }) => {
+    const isPinned = pinnedConversations.includes(conversation._id);
+
+    return (
+      <div
+        key={conversation._id}
+        className="relative group"
+        onClick={() => handleSelectConversation(conversation)}
+      >
+        <MessageItem
+          _id={conversation._id}
+          username={conversation.participants?.[0]?.username || "Unknown"}
+          avatar={conversation.participants?.[0]?.avatar}
+          lastMessage={conversation.lastMessage?.content || "No messages yet"}
+          time={
+            conversation.lastMessage?.createdAt
+              ? new Date(conversation.lastMessage.createdAt).toLocaleTimeString(
+                  [],
+                  {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }
+                )
+              : ""
+          }
+          unreadCount={getUserUnreadCount(conversation)}
+          isOnline={onlineUsers.includes(conversation.participants?.[0]?._id)}
+          isPinned={isPinned}
+        />
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -92,38 +135,44 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
           type="text"
           placeholder="Search"
           className="rounded-sm bg-white border-none shadow-none pl-10"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-      {/* <h3 className="mt-2">Pinned</h3>
-      {pinnedMessages.map((msg) => (
-        <MessageItem key={msg.id} {...msg} />
-      ))} */}
-      <h3 className="mt-2">All messages</h3>
-      {conversations.map((conversation) => (
-        <div
-          key={conversation._id}
-          onClick={() => handleSelectConversation(conversation)}
-        >
-          <MessageItem
-            _id={conversation._id}
-            username={conversation.participants?.[0]?.username || "Unknown"}
-            avatar={conversation.participants?.[0]?.avatar}
-            lastMessage={conversation.lastMessage?.content || "No messages yet"}
-            time={
-              conversation.lastMessage?.createdAt
-                ? new Date(
-                    conversation.lastMessage.createdAt
-                  ).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : ""
-            }
-            unreadCount={getUserUnreadCount(conversation)}
-            isOnline={onlineUsers.includes(conversation.participants?.[0]?._id)}
-          />
+
+      {filteredConversations.length > 0 ? (
+        <>
+          {pinnedConvs.length > 0 && (
+            <>
+              <h3 className="mt-4 font-medium">Pinned</h3>
+              <div className="space-y-1">
+                {pinnedConvs.map((conversation) => (
+                  <ConversationItem
+                    key={conversation._id}
+                    conversation={conversation}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          <h3 className="mt-4 font-medium">
+            {pinnedConvs.length > 0 ? "All messages" : "Messages"}
+          </h3>
+          <div className="space-y-1">
+            {unpinnedConvs.map((conversation) => (
+              <ConversationItem
+                key={conversation._id}
+                conversation={conversation}
+              />
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="py-4 text-center text-gray-500">
+          No matching conversations found
         </div>
-      ))}
+      )}
     </div>
   );
 };
