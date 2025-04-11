@@ -4,27 +4,22 @@ import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import SideNav from "../../homepage/_components/SideNav";
 import Image from "next/image";
-import { Settings, Plus, UserPlus, UserMinus, Camera } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   fetchProfile,
-  updateProfile,
   followUser,
   unfollowUser,
   selectProfile,
   updateFollowers,
-  selectFollowers,
   selectFollowing,
   getFollowingUsers,
 } from "@/redux/features/profileSlice";
-
 import { toast } from "react-hot-toast";
-
 import ProfileHeader from "../_components/ProfileHeader";
 import ProfileInfo from "../_components/ProfileInfo";
 import ProfileTabs from "../_components/ProfileTabs";
 import ProfileLoading from "../_components/ProfileLoading";
+import CardRecommendation from "../../homepage/_components/recommend-section/CardRecommendation";
 
 const ProfilePage = ({ params }) => {
   const router = useRouter();
@@ -34,11 +29,8 @@ const ProfilePage = ({ params }) => {
 
   const [activeTab, setActiveTab] = useState("posts");
   const [isLoading, setIsLoading] = useState(true);
-  const [showEditModal, setShowEditModal] = useState(false);
-
   const profileUser = useSelector(selectProfile);
 
-  const following = useSelector(selectFollowing);
   const isOwnProfile = loggedInUserId === viewedUserId;
 
   useEffect(() => {
@@ -61,7 +53,6 @@ const ProfilePage = ({ params }) => {
         setIsLoading(true);
         await Promise.all([
           dispatch(fetchProfile(viewedUserId)).unwrap(),
-
           dispatch(
             getFollowingUsers({ userId: viewedUserId, page: 1, limit: 10 })
           ).unwrap(),
@@ -96,20 +87,6 @@ const ProfilePage = ({ params }) => {
     }
   };
 
-  const handleImageUpload = async (file, type) => {
-    if (!file) return;
-
-    try {
-      const formData = new FormData();
-      formData.append(type, file);
-      await dispatch(updateProfile(formData)).unwrap();
-      toast.success(`${type} updated successfully`);
-    } catch (error) {
-      toast.error(`Failed to update ${type}`);
-      console.error(`Error updating ${type}:`, error);
-    }
-  };
-
   if (isLoading) {
     return <ProfileLoading />;
   }
@@ -136,8 +113,6 @@ const ProfilePage = ({ params }) => {
           <ProfileHeader
             profileUser={profileUser}
             isOwnProfile={isOwnProfile}
-            handleImageUpload={handleImageUpload}
-            setShowEditModal={setShowEditModal}
           />
 
           <ProfileInfo
@@ -168,22 +143,20 @@ const ProfilePage = ({ params }) => {
                     <p className="text-sm mt-1">{pet.name || "Unnamed Pet"}</p>
                   </div>
                 ))}
-                {isOwnProfile && (
-                  <div
-                    className="text-center text-d-gray cursor-pointer"
-                    onClick={() => setShowAddPetModal(true)}
-                  >
-                    <div className="flex flex-col items-center justify-center w-16 h-16 rounded-full border-2 border-gray-300 hover:bg-gray-100 transition">
-                      <Plus size={20} />
-                    </div>
-                    <p className="text-xs mt-1">Add pet</p>
-                  </div>
-                )}
               </div>
             </div>
           )}
+        </div>
 
-          <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        <div className="flex flex-row mt-4">
+          <div className="flex-2/3">
+            <ProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+          </div>
+
+          <div className="flex-1/3 pl-4">
+            <h2 className="font-bold text-xl mt-4">Recommendation for you</h2>
+            <CardRecommendation />
+          </div>
         </div>
       </div>
     </div>

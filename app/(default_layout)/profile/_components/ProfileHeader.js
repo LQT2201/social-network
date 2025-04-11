@@ -2,29 +2,52 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Settings, Camera } from "lucide-react";
-import Image from "next/image";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useDispatch } from "react-redux";
+import { toast } from "react-hot-toast";
+import { updateProfile } from "@/redux/features/profileSlice";
 
-const ProfileHeader = ({
-  profileUser,
-  isOwnProfile,
-  handleImageUpload,
-  setShowEditModal,
-}) => {
+const ProfileHeader = ({ profileUser, isOwnProfile }) => {
+  const dispatch = useDispatch();
+
+  const handleImageUpload = async (file, type) => {
+    if (!file) {
+      console.warn("No file provided for upload");
+      return;
+    }
+
+    const validTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please upload a valid image file (JPEG, PNG, GIF)");
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error("File size too large (max 5MB)");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append(type, file);
+
+      await dispatch(updateProfile(formData)).unwrap();
+      toast.success(`${type} updated successfully`);
+    } catch (error) {
+      console.error(`Error updating ${type}:`, error);
+      let errorMessage = `Failed to update ${type}`;
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    }
+  };
+
   return (
     <div className="rounded-t-md relative bg-white">
-      {isOwnProfile && (
-        <div className="absolute top-5 right-5 flex gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowEditModal(true)}
-            className="bg-white/80 hover:bg-white"
-          >
-            <Settings size={20} />
-          </Button>
-        </div>
-      )}
       <div className="relative">
         <img
           src={profileUser?.coverImage || "/images/default-cover.jpg"}
@@ -40,9 +63,12 @@ const ProfileHeader = ({
               type="file"
               className="hidden"
               accept="image/*"
-              onChange={(e) =>
-                handleImageUpload(e.target.files?.[0], "coverImage")
-              }
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleImageUpload(file, "coverImage");
+                }
+              }}
             />
             <Camera size={20} />
           </label>
@@ -62,9 +88,12 @@ const ProfileHeader = ({
                 type="file"
                 className="hidden"
                 accept="image/*"
-                onChange={(e) =>
-                  handleImageUpload(e.target.files?.[0], "avatar")
-                }
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleImageUpload(file, "avatar");
+                  }
+                }}
               />
               <Camera size={20} />
             </label>

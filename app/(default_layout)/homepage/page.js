@@ -1,22 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPosts,
   likePost,
   selectAllPosts,
-  selectPostStatus,
+  getFollowingPosts,
   selectPostError,
   selectPagination,
-  selectFollowingPosts,
-  selectFollowingPostsStatus,
-  selectFollowingPostsError,
-  selectFollowingPagination,
-  getFollowingPosts,
 } from "@/redux/features/postSlice";
 import SideNav from "./_components/SideNav";
-
 import TabPost from "./_components/TabPost";
 import CardRecommendation from "./_components/recommend-section/CardRecommendation";
 import SuggestedPostCard from "./_components/recommend-section/SuggetedPostCard";
@@ -28,37 +22,33 @@ import { fetchCurrentUser, selectUser } from "@/redux/features/userSlice";
 import { toast } from "react-hot-toast";
 
 const HomePage = () => {
-  // Add render counter
-  const renderCount = useRef(0);
-
-  // Log render count
-  useEffect(() => {
-    renderCount.current += 1;
-    console.log(`HomePage rendered ${renderCount.current} times`);
-  });
-
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Redux selectors
   const posts = useSelector(selectAllPosts);
-  const followingPosts = useSelector(selectFollowingPosts);
-  const followingPostsStatus = useSelector(selectFollowingPostsStatus);
-  const followingPostsError = useSelector(selectFollowingPostsError);
-  const followingPagination = useSelector(selectFollowingPagination);
-
+  const postsError = useSelector(selectPostError);
+  const postsPagination = useSelector(selectPagination);
   const user = useSelector(selectUser);
-  const isLoading = followingPostsStatus === "loading";
 
-  // Fetch posts on component mount
+  const hasMore = postsPagination?.page < postsPagination?.total;
+
   useEffect(() => {
-    dispatch(fetchPosts({ page: 1, limit: 10 }));
-    dispatch(getFollowingPosts({ page: 1, limit: 10 }));
-    dispatch(fetchCurrentUser());
+    const loadInitialData = async () => {
+      try {
+        await dispatch(fetchPosts({ page: 1, limit: 4 })).unwrap();
+        await dispatch(fetchCurrentUser()).unwrap();
+      } catch (error) {
+        toast.error("Không thể tải dữ liệu");
+        console.error("Initial load error:", error);
+      }
+    };
+
+    loadInitialData();
   }, [dispatch]);
 
-  // Handle post like with memo to prevent unnecessary renders
   const handleLikePost = useCallback(
     async (postId) => {
       try {
@@ -72,24 +62,25 @@ const HomePage = () => {
   );
 
   // Handle load more posts with memo
-  const handleLoadMore = useCallback(() => {
-    if (
-      !isLoading &&
-      followingPagination.page < followingPagination.totalPages
-    ) {
-      dispatch(
-        getFollowingPosts({
-          page: followingPagination.page + 1,
-          limit: 10,
-        })
-      );
+  const handleLoadMore = useCallback(async () => {
+    if (!hasMore || isLoadingMore) return;
+
+    setIsLoadingMore(true);
+
+    const params = {
+      page: postsPagination.page + 1,
+      limit: 4,
+    };
+
+    try {
+      await dispatch(fetchPosts(params)).unwrap();
+    } catch (error) {
+      toast.error("Không thể tải thêm bài viết");
+      console.error("Load more error:", error);
+    } finally {
+      setIsLoadingMore(false);
     }
-  }, [
-    dispatch,
-    isLoading,
-    // followingPagination.page,
-    // followingPagination.totalPages,
-  ]);
+  }, [dispatch, hasMore, isLoadingMore, postsPagination.page]);
 
   // Update the comment click handler with memo
   const handleCommentClick = useCallback((postId) => {
@@ -107,36 +98,26 @@ const HomePage = () => {
 
   return (
     <div className="grid grid-cols-12 gap-4">
-      {/* Add render count display for development */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="fixed bottom-4 right-4 bg-black/80 text-white px-3 py-1 rounded-full">
-          Renders: {renderCount.current}
-        </div>
-      )}
-
-      <div className="col-span-2 lg:flex md:hidden sm:hidden">
+      <div className="lg:col-span-2 justify-start lg:flex hidden">
         <div className="sticky top-5">
           <SideNav />
         </div>
       </div>
 
-      <div className="col-span-7 p-1 text-sm">
+      <div className="col-span-12 lg:col-span-7 p-1 text-sm">
         <CreatePost user={user} />
-
         <TabPost />
-
         <ListPost
-          posts={followingPosts}
-          isLoading={isLoading}
-          error={followingPostsError}
+          posts={posts}
+          error={postsError}
           onLike={handleLikePost}
           onCommentClick={handleCommentClick}
           onLoadMore={handleLoadMore}
-          // hasMore={followingPagination.page < followingPagination.totalPages}
+          hasMore={hasMore}
         />
       </div>
 
-      <div className="col-span-3">
+      <div className="col-span-12 lg:col-span-3">
         <h2 className="text-xl font-medium text-jet">Recommend for you</h2>
         <CardRecommendation />
         <h2 className="text-xl font-medium text-jet mt-3">

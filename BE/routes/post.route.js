@@ -9,6 +9,9 @@ const { uploadCloud } = require("../config/cloudinary.config");
 // Protected routes
 router.use(authentication);
 router.get("/following", PostController.getFollowingPosts);
+router.get("/:userId/user", PostController.getPostsByUser);
+router.get("/:userId/liked", PostController.getPostsLiked);
+
 router.get("/", PostController.getPosts);
 router.get("/:id", PostController.getPostById);
 

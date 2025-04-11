@@ -4,7 +4,13 @@ const UserService = require("../services/user.service");
 class UserController {
   static async getRecommendUsers(req, res, next) {
     try {
-      const result = await UserService.getRecommendUsers(req.userId);
+      const { page = 1, limit = 4 } = req.query;
+      const userId = req.userId;
+      const result = await UserService.getRecommendUsers(
+        userId,
+        parseInt(page),
+        parseInt(limit)
+      );
       new SuccessResponse({
         message: "Recommend users retrieved successfully",
         metadata: result,
@@ -109,18 +115,16 @@ class UserController {
 
   static async updateProfile(req, res, next) {
     try {
-      const { userId } = req.params;
+      const userId = req.userId;
       const data = req.body;
-      const files = req.files;
+      const files = req.files || {};
 
       // Handle file uploads
-      if (files) {
-        if (files.avatar) {
-          data.avatar = files.avatar[0].path;
-        }
-        if (files.coverImage) {
-          data.coverImage = files.coverImage[0].path;
-        }
+      if (files.avatar && files.avatar[0]) {
+        data.avatar = files.avatar[0].path;
+      }
+      if (files.coverImage && files.coverImage[0]) {
+        data.coverImage = files.coverImage[0].path;
       }
 
       const updatedUser = await UserService.updateProfile(userId, data);

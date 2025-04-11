@@ -18,7 +18,7 @@ router.get("/:userId", UserController.getUserById);
 
 // Profile routes
 router.put(
-  "/:userId/profile",
+  "/profile",
   uploadCloud.fields([
     { name: "avatar", maxCount: 1 },
     { name: "coverImage", maxCount: 1 },

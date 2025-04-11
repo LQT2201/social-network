@@ -6,10 +6,36 @@ export const fetchPosts = createAsyncThunk(
   "posts/fetchPosts",
   async (params, { rejectWithValue }) => {
     try {
-      return await PostService.fetchPosts(params);
+      return await PostService.getFollowingPosts(params);
     } catch (error) {
       return rejectWithValue(
         error.response?.data || { message: "Không thể kết nối đến server" }
+      );
+    }
+  }
+);
+
+export const fetchPostsByUser = createAsyncThunk(
+  "posts/fetchPostsByUser",
+  async (params, { rejectWithValue }) => {
+    try {
+      return await PostService.getPostsByUser(params);
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Không thể tải bài viết theo user" }
+      );
+    }
+  }
+);
+
+export const fetchLikedPosts = createAsyncThunk(
+  "posts/fetchLikedPosts",
+  async (params, { rejectWithValue }) => {
+    try {
+      return await PostService.getLikedPosts(params);
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Không thể tải bài viết đã thích" }
       );
     }
   }
@@ -71,7 +97,7 @@ export const deletePost = createAsyncThunk(
 
 export const getFollowingPosts = createAsyncThunk(
   "posts/getFollowingPosts",
-  async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
+  async ({ page = 1, limit = 2 }, { rejectWithValue }) => {
     try {
       return await PostService.getFollowingPosts(page, limit);
     } catch (error) {
@@ -83,16 +109,11 @@ export const getFollowingPosts = createAsyncThunk(
 );
 const initialState = {
   items: [],
-  followingPosts: {
-    data: [],
-    status: "idle",
-    error: null,
-  },
   status: "idle",
   error: null,
   pagination: {
     page: 1,
-    limit: 10,
+    limit: 5,
     total: 0,
     totalPages: 0,
   },
@@ -132,19 +153,6 @@ const postsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Get Following Posts
-      .addCase(getFollowingPosts.pending, (state) => {
-        state.followingPosts.status = "loading";
-        state.followingPosts.error = null;
-      })
-      .addCase(getFollowingPosts.fulfilled, (state, action) => {
-        state.followingPosts.status = "succeeded";
-        state.followingPosts.data = action.payload;
-      })
-      .addCase(getFollowingPosts.rejected, (state, action) => {
-        state.followingPosts.status = "failed";
-        state.followingPosts.error = action.payload?.message;
-      })
 
       // Fetch Posts
       .addCase(fetchPosts.pending, (state) => {
@@ -187,6 +195,8 @@ const postsSlice = createSlice({
       // Like Post
       .addCase(likePost.fulfilled, (state, action) => {
         const post = state.items.find((p) => p._id === action.payload.postId);
+
+        console.log("ádc", post);
         if (post) {
           post.stats = action.payload.data.stats;
         }
@@ -211,6 +221,46 @@ const postsSlice = createSlice({
       .addCase(fetchPostById.rejected, (state, action) => {
         state.activePost.status = "failed";
         state.activePost.error = action.payload?.message;
+      })
+
+      // Fetch Posts By User
+      .addCase(fetchPostsByUser.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchPostsByUser.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        console.log("fetchPostsByUser fulfilled:", action.payload);
+        // Component will handle the data directly
+      })
+      .addCase(fetchPostsByUser.rejected, (state, action) => {
+        state.status = "failed";
+        state.error =
+          action.payload?.message || "Không thể tải bài viết của người dùng";
+        console.error(
+          "fetchPostsByUser rejected:",
+          action.payload || action.error
+        );
+      })
+
+      // Fetch Liked Posts
+      .addCase(fetchLikedPosts.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchLikedPosts.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        console.log("fetchLikedPosts fulfilled:", action.payload);
+        // Component will handle the data directly
+      })
+      .addCase(fetchLikedPosts.rejected, (state, action) => {
+        state.status = "failed";
+        state.error =
+          action.payload?.message || "Không thể tải bài viết đã thích";
+        console.error(
+          "fetchLikedPosts rejected:",
+          action.payload || action.error
+        );
       });
   },
 });
@@ -248,15 +298,6 @@ export const {
   resetPosts,
   clearActivePost,
 } = postsSlice.actions;
-
-export const selectFollowingPosts = (state) =>
-  state.posts.followingPosts.data.posts;
-export const selectFollowingPostsStatus = (state) =>
-  state.posts.followingPosts.status;
-export const selectFollowingPostsError = (state) =>
-  state.posts.followingPosts.error;
-export const selectFollowingPagination = (state) =>
-  state.posts.followingPosts.data.pagination;
 
 export const selectSelectedPost = (state) => state.posts.selectedPost;
 export const selectSelectedPostStatus = (state) =>

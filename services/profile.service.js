@@ -6,19 +6,20 @@ class ProfileService {
     return response.data.metadata;
   }
 
-  static async updateProfile(userId, data) {
-    const response = await axios.put(`/users/${userId}`, data, {
+  static async updateProfile(data) {
+    console.log("ádfád", data);
+
+    const response = await axios.put(`/users/profile`, data, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
+
     return response.data.metadata;
   }
 
   static async followUser(userId) {
-    console.log(userId, "hllo");
     const response = await axios.post(`/users/${userId}/follow`);
-    console.log(response, "hllo");
     return response.data.metadata;
   }
 

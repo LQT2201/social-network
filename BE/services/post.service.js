@@ -176,14 +176,64 @@ class PostService {
     }
   }
 
-  static async getFollowingPosts(userId, page = 1, limit = 10) {
+  static async getPostsByUser({ userId, page = 1, limit = 5 }) {
     try {
+      const posts = await Post.find({ author: userId })
+        .populate("author", "username avatar")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+      // // Đếm tổng số bài viết của user để tính pagination
+      const total = await Post.countDocuments({ author: userId });
+
+      return {
+        posts,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      throw new BadRequestError("Could not fetch posts for this user");
+    }
+  }
+
+  static async getPostsLiked({ userId, page = 1, limit = 5 }) {
+    try {
+      // Tìm các bài viết mà trong trường stats.likes có chứa userId
+      const posts = await Post.find({ "stats.likes": userId })
+        .populate("author", "username avatar")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+      // Đếm số bài viết phù hợp để tính pagination
+      const total = await Post.countDocuments({ "stats.likes": userId });
+
+      return {
+        posts,
+        pagination: {
+          page: parseInt(page, 10),
+          limit: parseInt(limit, 10),
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      throw new BadRequestError("Could not fetch liked posts for this user");
+    }
+  }
+
+  static async getFollowingPosts({ userId, page = 1, limit = 5 }) {
+    try {
+      console.log({ userId, page, limit });
       const user = await User.findById(userId).select("following");
       if (!user) {
         throw new NotFoundError("User not found");
       }
-
-      console.log(user.following);
 
       // Fetch posts with pagination
       const followingPosts = await Post.find({
@@ -192,8 +242,6 @@ class PostService {
         .skip((page - 1) * limit)
         .limit(limit)
         .populate("author", "username avatar");
-
-      console.log(followingPosts);
 
       // Count documents using the correct array of user IDs
       const total = await Post.countDocuments({

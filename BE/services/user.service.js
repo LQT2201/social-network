@@ -2,7 +2,7 @@ const { AuthFailureError } = require("../core/error.response");
 const User = require("../models/user.model"); // Assuming you have a User model defined
 
 class UserService {
-  static async getRecommendUsers(userId) {
+  static async getRecommendUsers(userId, page = 1, limit = 4) {
     try {
       const user = await User.findById(userId).select("-password");
       if (!user) {
@@ -10,10 +10,24 @@ class UserService {
       }
       const following = user.following;
 
+      const total = await User.countDocuments({ _id: { $nin: following } });
+
+      const skip = (page - 1) * limit;
       const recommendUsers = await User.find({
         _id: { $nin: following },
-      }).select("-password");
-      return recommendUsers;
+      })
+        .select("-password")
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+      const pagination = {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      };
+      return { recommendUsers, pagination };
     } catch (error) {
       throw new Error("Error fetching recommend users: " + error.message);
     }
@@ -163,12 +177,13 @@ class UserService {
 
       // Update user profile
       Object.keys(data).forEach((key) => {
-        if (data[key] !== undefined) {
+        if (data[key] !== undefined && data[key] !== null) {
           user[key] = data[key];
         }
       });
 
       await user.save();
+
       return user;
     } catch (error) {
       throw new Error("Error updating profile: " + error.message);

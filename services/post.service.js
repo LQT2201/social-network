@@ -8,9 +8,25 @@ export const PostService = {
     return response.data.metadata;
   },
 
-  async getFollowingPosts(page = 1, limit = 10) {
+  async getPostsByUser({ userId, page = 1, limit = 5, visibility = "public" }) {
+    const response = await axios.get(`/posts/${userId}/user`, {
+      params: { page, limit, visibility },
+    });
+
+    return response.data.metadata;
+  },
+
+  async getLikedPosts({ userId, page = 1, limit = 5, visibility = "public" }) {
+    const response = await axios.get(`/posts/${userId}/liked`, {
+      params: { page, limit, visibility },
+    });
+
+    return response.data.metadata;
+  },
+
+  async getFollowingPosts({ page = 1, limit = 5, visibility = "public" }) {
     const response = await axios.get("/posts/following", {
-      params: { page, limit },
+      params: { page, limit, visibility },
     });
     return response.data.metadata;
   },

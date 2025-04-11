@@ -60,7 +60,7 @@ const CommentItem = memo(({ comment, onReply, depth = 0 }) => {
             </p>
 
             <div className="flex items-center gap-4 mt-2">
-              <button
+              {/* <button
                 className={`flex items-center gap-1 text-xs hover:text-blue-600 transition-colors ${
                   isLiked ? "text-red-500" : "text-gray-500"
                 }`}
@@ -68,10 +68,10 @@ const CommentItem = memo(({ comment, onReply, depth = 0 }) => {
               >
                 <Heart className="h-4 w-4" />
                 <span>{comment.likes?.length || 0}</span>
-              </button>
+              </button> */}
 
               <button
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600 transition-colors"
+                className="flex items-center gap-1 text-xs text-d-gray hover:text-yellow-orange transition-colors"
                 onClick={handleReply}
               >
                 <MessageCircle className="h-4 w-4" />
@@ -80,7 +80,7 @@ const CommentItem = memo(({ comment, onReply, depth = 0 }) => {
 
               {hasReplies && (
                 <button
-                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600 transition-colors"
+                  className="flex items-center gap-1 text-xs text-d-gray hover:text-yellow-orange transition-colors"
                   onClick={toggleReplies}
                 >
                   {showReplies ? (
@@ -121,7 +121,7 @@ const CommentList = memo(
   ({ comments, onReply }) => {
     if (!comments?.length) {
       return (
-        <div className="text-center py-4 text-gray-500">
+        <div className="text-center py-4 text-yellow-orange">
           No comments yet. Be the first to comment!
         </div>
       );

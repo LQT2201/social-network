@@ -1,41 +1,53 @@
 "use client";
-import React, { Suspense } from "react";
+import React, { Suspense, useRef, useCallback, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import dynamic from "next/dynamic";
 import PostSkeleton from "./card-post/PostSkeleton";
 import { formatMediaFiles } from "@/utils/mediaFormatter";
+import NoMoreRecommendations from "./recommend-section/NoMoreRecommendations";
 
 const CardPost = dynamic(() => import("./card-post/CardPost"), {
   loading: () => <PostSkeleton />,
   ssr: false,
 });
 
-const LoadingPosts = () => (
-  <div className="space-y-4">
-    {[...Array(3)].map((_, index) => (
-      <PostSkeleton key={`skeleton-${index}`} />
-    ))}
-  </div>
-);
-
-const LoadMoreButton = ({ onClick }) => (
-  <button
-    onClick={onClick}
-    className="w-full py-2 text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
-  >
-    Tải thêm bài viết
-  </button>
-);
-
 const ListPost = ({
   posts = [],
-  isLoading,
   error,
   onLike,
   onCommentClick,
   onLoadMore,
   hasMore,
 }) => {
+  const loadingRef = useRef(null);
+
+  // Add intersection observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && hasMore) {
+          onLoadMore();
+        }
+      },
+      {
+        root: null,
+        // rootMargin: "20px",
+        threshold: 0.1,
+      }
+    );
+
+    if (loadingRef.current) {
+      observer.observe(loadingRef.current);
+    }
+
+    return () => {
+      if (loadingRef.current) {
+        observer.unobserve(loadingRef.current);
+      }
+    };
+  }, [hasMore, onLoadMore]);
+
   if (error) {
     return (
       <div className="text-red-500 text-center p-4 rounded-lg bg-red-50">
@@ -72,9 +84,18 @@ const ListPost = ({
         </Suspense>
       ))}
 
-      {isLoading && <LoadingPosts />}
+      {/* Loading indicator and intersection observer trigger */}
+      <div ref={loadingRef} className="pt-4">
+        {hasMore && (
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-l-yellow"></div>
+          </div>
+        )}
+      </div>
 
-      {hasMore && !isLoading && <LoadMoreButton onClick={onLoadMore} />}
+      {!hasMore && (
+        <NoMoreRecommendations title="No More Posts Available For You. Follow More People." />
+      )}
     </div>
   );
 };

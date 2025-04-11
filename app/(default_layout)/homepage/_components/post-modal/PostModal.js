@@ -154,7 +154,7 @@ const PostModal = ({ open, setOpen, postId }) => {
           })
         ).unwrap();
 
-        await dispatch(
+        dispatch(
           fetchPostComments({
             postId,
             page: 1,
@@ -355,7 +355,7 @@ const PostModal = ({ open, setOpen, postId }) => {
                   <Button
                     onClick={handleAddComment}
                     disabled={isLoading || isReplying || !newComment.trim()}
-                    className={`min-w-[80px] ${
+                    className={`min-w-[80px] bg-yellow-orange hover:bg-l-yellow ${
                       isLoading || isReplying ? "opacity-50" : ""
                     }`}
                   >

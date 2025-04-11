@@ -1,9 +1,11 @@
 import axios from "@/lib/axios";
 
 export const UserService = {
-  async getRecommendUsers() {
+  async getRecommendUsers(page = 1, limit = 4) {
     try {
-      const response = await axios.get("/users/recommend");
+      const response = await axios.get("/users/recommend", {
+        params: { page, limit },
+      });
       return response.data.metadata;
     } catch (error) {
       throw new Error(`Failed to get recommend users: ${error.message}`);

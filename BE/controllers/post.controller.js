@@ -43,11 +43,73 @@ class PostController {
     }
   }
 
+  static async getPostsByUser(req, res, next) {
+    try {
+      const userId = req.params.userId;
+      const { page = 1, limit = 5 } = req.query;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+
+      const result = await PostService.getPostsByUser({
+        userId,
+        page: pageNum,
+        limit: limitNum,
+      });
+      new SuccessResponse({
+        message: "Get user posts success",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getPostsByUser(req, res, next) {
+    try {
+      const userId = req.params.userId;
+      const { page = 1, limit = 5 } = req.query;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+
+      const result = await PostService.getPostsByUser({
+        userId,
+        page: pageNum,
+        limit: limitNum,
+      });
+      new SuccessResponse({
+        message: "Get user posts success",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getPostsLiked(req, res, next) {
+    try {
+      const userId = req.params.userId;
+      const { page = 1, limit = 5 } = req.query;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+
+      const result = await PostService.getPostsLiked({
+        userId,
+        page: pageNum,
+        limit: limitNum,
+      });
+      new SuccessResponse({
+        message: "Get posts liked by user success",
+        metadata: result,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Get single post by ID
   static async getPostById(req, res, next) {
     try {
       const postId = req.params.id;
-      console.log("Fetching post with ID:", postId);
 
       const post = await PostService.getPostById(postId);
 
@@ -68,7 +130,14 @@ class PostController {
   static async getFollowingPosts(req, res, next) {
     try {
       const userId = req.userId;
-      const result = await PostService.getFollowingPosts(userId);
+      const { page = 1, limit = 5 } = req.query;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      const result = await PostService.getFollowingPosts({
+        userId,
+        page: pageNum,
+        limit: limitNum,
+      });
 
       new SuccessResponse({
         message: "Following posts retrieved successfully",

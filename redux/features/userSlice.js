@@ -55,8 +55,8 @@ export const getAllUsers = createAsyncThunk(
 
 export const getRecommendUsers = createAsyncThunk(
   "user/getRecommendUsers",
-  async (_, { rejectWithValue }) => {
-    const response = await UserService.getRecommendUsers();
+  async ({ page = 1, limit = 4 }, { rejectWithValue }) => {
+    const response = await UserService.getRecommendUsers(page, limit);
     return response;
   }
 );
@@ -67,15 +67,16 @@ const initialState = {
   error: null,
   recommendUsers: {
     users: [],
-    pagination: null,
+    pagination: {},
+    status: "idle",
   },
   searchResults: {
     users: [],
-    pagination: null,
+    pagination: {},
   },
   allUsers: {
     users: [],
-    pagination: null,
+    pagination: {},
   },
   searchStatus: "idle",
   allUsersStatus: "idle",
@@ -146,7 +147,8 @@ const userSlice = createSlice({
       })
       .addCase(getRecommendUsers.fulfilled, (state, action) => {
         state.recommendUsers.status = "succeeded";
-        state.recommendUsers.users = action.payload;
+        state.recommendUsers.users = action.payload.recommendUsers;
+        state.recommendUsers.pagination = action.payload.pagination;
       })
       .addCase(getRecommendUsers.rejected, (state, action) => {
         state.recommendUsers.status = "failed";
@@ -167,7 +169,11 @@ export const selectSearchResults = (state) => state.user.searchResults;
 export const selectSearchStatus = (state) => state.user.searchStatus;
 export const selectAllUsers = (state) => state.user.allUsers;
 export const selectAllUsersStatus = (state) => state.user.allUsersStatus;
+
 export const selectRecommendUsers = (state) => state.user.recommendUsers.users;
 export const selectRecommendUsersStatus = (state) =>
   state.user.recommendUsers.status;
+export const selectRecommendUsersPagination = (state) =>
+  state.user.recommendUsers.pagination;
+
 export default userSlice.reducer;

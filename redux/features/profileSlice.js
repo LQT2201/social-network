@@ -19,9 +19,10 @@ export const fetchProfile = createAsyncThunk(
 
 export const updateProfile = createAsyncThunk(
   "profile/updateProfile",
-  async ({ userId, data }, { rejectWithValue }) => {
+  async (data, { rejectWithValue }) => {
     try {
-      const response = await ProfileService.updateProfile(userId, data);
+      console.log("profile/updateProfile ");
+      const response = await ProfileService.updateProfile(data);
       toast.success("Profile updated successfully");
       return response;
     } catch (error) {
