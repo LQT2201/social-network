@@ -17,7 +17,7 @@ connectDB();
 // Configure CORS
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
     credentials: true,
   })
 );
@@ -77,5 +77,3 @@ app.set("socketService", socketService);
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-console.log(process.env.NODE_ENV);
