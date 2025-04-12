@@ -91,7 +91,7 @@ const Page = () => {
   useEffect(() => {
     if (!token || !clientId) return;
 
-    const socketUrl = process.env.BASE_URL_SOCKET || "http://localhost:5000";
+    const socketUrl = process.env.NEXT_PUBLIC_BASE_URL_SOCKET;
     const newSocket = io(socketUrl, {
       auth: {
         "x-client-id": clientId,

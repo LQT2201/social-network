@@ -25,9 +25,6 @@ const nextConfig = {
       },
     ],
   },
-  env: {
-    BASE_URL: "http://localhost:5000/api/",
-  },
   images: {
     domains: ["res-console.cloudinary.com", "res.cloudinary.com"],
   },
