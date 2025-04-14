@@ -32,7 +32,7 @@ const SideNav = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col">
       {side_links.map((side_link, index) => {
         const isActive = pathname === side_link.path;
         const buttonClass = isActive

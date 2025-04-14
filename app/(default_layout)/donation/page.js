@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2 } from "lucide-react";
-import SideNav from "../homepage/_components/SideNav";
+import SideNav from "../../_components/SideNav";
 import withAuth from "@/hocs/withAuth";
 
 const DonationPage = () => {

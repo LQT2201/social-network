@@ -9,7 +9,7 @@ export const MessageService = {
     return response.data.metadata;
   },
 
-  async getMessages(conversationId, page = 1, limit = 20) {
+  async getMessages(conversationId, page = 1, limit = 15) {
     const response = await axios.get(`/messages/${conversationId}/messages`, {
       params: { page, limit },
     });

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import withAuth from "@/hocs/withAuth";
-import SideNav from "../homepage/_components/SideNav";
+import SideNav from "../../_components/SideNav";
 import SettingsTabs from "./_components/SettingsTabs";
 import {
   fetchCurrentUser,

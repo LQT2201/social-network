@@ -10,7 +10,7 @@ import {
   selectPostError,
   selectPagination,
 } from "@/redux/features/postSlice";
-import SideNav from "./_components/SideNav";
+import SideNav from "../../_components/SideNav";
 import TabPost from "./_components/TabPost";
 import CardRecommendation from "./_components/recommend-section/CardRecommendation";
 import SuggestedPostCard from "./_components/recommend-section/SuggetedPostCard";

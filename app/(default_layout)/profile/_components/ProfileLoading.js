@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import SideNav from "../../homepage/_components/SideNav";
+import SideNav from "../../../_components/SideNav";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const ProfileLoading = () => {

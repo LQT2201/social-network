@@ -2,6 +2,7 @@ const socketIO = require("socket.io");
 const JWT = require("jsonwebtoken");
 const { AuthFailureError } = require("../core/error.response");
 const KeyTokenService = require("../services/keyToken.service");
+const MessageService = require("../services/message.service");
 
 class SocketService {
   constructor(server) {
@@ -42,14 +43,12 @@ class SocketService {
         return next(new AuthFailureError("Invalid authentication"));
       }
 
-      // Verify token
       try {
         const decodedUser = JWT.verify(accessToken, keyStore.publicKey);
         if (userId !== decodedUser.userId) {
           throw new Error("User ID mismatch");
         }
 
-        // Attach user data to socket
         socket.user = {
           userId: decodedUser.userId,
           keyStore,
@@ -86,8 +85,6 @@ class SocketService {
     // Add user to online users
     this.onlineUsers.set(userId, socket.id);
 
-    console.log(this.onlineUsers);
-
     // Join user's personal room
     socket.join(userId);
 
@@ -113,23 +110,21 @@ class SocketService {
       try {
         const { conversationId, content, media, replyTo } = data;
 
-        if (!conversationId || !content) {
-          throw new Error("Invalid message data");
-        }
-
-        const message = {
-          sender: userId,
+        const newMessage = await MessageService.createMessage({
+          senderId: userId,
+          conversationId,
           content,
-          isEdited: false,
-          reactions: [],
           media: media || [],
           replyTo: replyTo || null,
-          createdAt: new Date(),
-        };
+        });
+
+        await newMessage.save();
+        const jsObject = await newMessage.toJSON();
+
+        console.log(jsObject);
 
         this.io.to(conversationId).emit("newMessage", {
-          conversationId,
-          message,
+          jsObject,
         });
       } catch (error) {
         socket.emit("messageError", { error: error.message });

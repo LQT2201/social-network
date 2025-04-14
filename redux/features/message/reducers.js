@@ -23,107 +23,82 @@ export const setActiveConversation = (state, action) => {
 };
 
 export const setOnlineUsers = (state, action) => {
-  state.onlineUsers = action.payload;
-};
+  const onlineUsers = action.payload;
+  state.onlineUsers = onlineUsers;
 
-export const updateUserStatus = (state, action) => {
-  const { userId, isOnline } = action.payload;
-  // Update user status in conversations
+  // Update participant status in conversations
   state.conversations.forEach((conversation) => {
     conversation.participants.forEach((participant) => {
-      if (participant._id === userId) {
-        participant.isOnline = isOnline;
-      }
+      participant.isOnline = onlineUsers.includes(participant._id);
     });
   });
 };
 
-export const addMessage = (state, action) => {
-  // Accept payload that has either a `message` property or a `content` field (for optimistic messages)
-  const {
-    conversationId,
-    message: payloadMessage,
-    isLocalMessage = false,
-  } = action.payload;
-  // If payloadMessage is not provided, construct it using content from payload
-  const messageData = payloadMessage || { content: action.payload.content };
+export const updateUserStatus = (state, action) => {
+  const { userId, isOnline } = action.payload;
+
+  // Update onlineUsers array
+  if (isOnline) {
+    if (!state.onlineUsers.includes(userId)) {
+      state.onlineUsers.push(userId);
+    }
+  } else {
+    state.onlineUsers = state.onlineUsers.filter((id) => id !== userId);
+  }
+
+  // Update participant status in conversations
+  state.conversations.forEach((conversation) => {
+    const participant = conversation.participants.find((p) => p._id === userId);
+    if (participant) {
+      participant.isOnline = isOnline;
+    }
+  });
+};
+
+export const sendMessage = (state, action) => {
+  const { conversationId, message } = action.payload;
 
   // Ensure messages array exists for the conversation
   if (!state.messagesByConversation[conversationId]) {
     state.messagesByConversation[conversationId] = [];
   }
 
-  // Use existing message._id if available; if not, generate a temporary id
-  const generatedId =
-    messageData._id ||
-    `temp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  // Add the message to the conversation's messages
+  state.messagesByConversation[conversationId].push({
+    ...message,
+    status: "sending", // Mark as sending until confirmed by server
+    isLocalMessage: true, // Mark as local message
+  });
 
-  // Check if a message with this ID already exists; if so, do nothing
-  if (
-    state.messagesByConversation[conversationId].some(
-      (msg) => msg._id === generatedId
-    )
-  ) {
-    return;
-  }
-
-  // Normalize the sender field, if provided
-  const normalizedSender = messageData.sender
-    ? typeof messageData.sender === "string"
-      ? { _id: messageData.sender, username: "User" }
-      : messageData.sender
-    : null;
-
-  // Create the new message object
-  const newMessage = {
-    _id: messageData._id || generatedId,
-    sender: normalizedSender,
-    content: messageData.content,
-    createdAt: messageData.createdAt
-      ? new Date(messageData.createdAt).toISOString()
-      : new Date().toISOString(),
-    updatedAt: messageData.updatedAt || new Date().toISOString(),
-    isEdited: messageData.isEdited || false,
-    media: messageData.media || [],
-    reactions: messageData.reactions || [],
-    readBy: messageData.readBy || [],
-    replyTo: messageData.replyTo || null,
-    status: isLocalMessage ? "sending" : "sent",
-    isLocalMessage,
-  };
-
-  // Add the new message to the conversation
-  state.messagesByConversation[conversationId].push(newMessage);
-
-  // Update the conversation's lastMessage if the conversation exists
+  // Update the conversation's lastMessage
   const conversation = state.conversations.find(
     (c) => c._id === conversationId
   );
-  if (!conversation) return;
+  if (conversation) {
+    conversation.lastMessage = {
+      ...message,
+      status: "sending",
+      isLocalMessage: true,
+    };
+  }
+};
 
-  conversation.lastMessage = newMessage;
+export const addMessage = (state, action) => {
+  const message = action.payload;
+  const { conversation: conversationId } = message;
 
-  // Update unreadCount (using localStorage for current userId; ideally, pass this in via the action)
-  const currentUserId = localStorage.getItem("x-client-id");
-  if (
-    currentUserId &&
-    (!normalizedSender || normalizedSender._id !== currentUserId)
-  ) {
-    if (!Array.isArray(conversation.unreadCount)) {
-      conversation.unreadCount = [];
-    }
-    const unreadEntry = conversation.unreadCount.find(
-      (item) => item.user === currentUserId
-    );
-    if (unreadEntry) {
-      unreadEntry.count = (parseInt(unreadEntry.count) || 0) + 1;
-    } else {
-      conversation.unreadCount.push({
-        user: currentUserId,
-        count: 1,
-        _id: `${conversation._id}-${currentUserId}`,
-      });
-    }
+  // Update messagesByConversation
+  if (!state.messagesByConversation[conversationId]) {
+    state.messagesByConversation[conversationId] = [];
+  }
+  state.messagesByConversation[conversationId].push(message);
+
+  // Update the conversation's lastMessage
+  const conversation = state.conversations.find(
+    (c) => c._id === conversationId
+  );
+  if (conversation) {
+    conversation.lastMessage = message;
   }
 };
 

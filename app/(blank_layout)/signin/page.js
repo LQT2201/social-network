@@ -22,6 +22,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hook"; // custom hooks c
 import { login, loginWithGoogle } from "@/redux/features/authSlice"; // Async thunk login
 import CustomButton from "@/app/_components/CustomButton";
 import { Bird, Facebook } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 // Định nghĩa schema bằng Zod
 const formSchema = z.object({
@@ -48,11 +49,10 @@ export default function LoginForm() {
 
     // Kiểm tra nếu đăng nhập thành công
     if (login.fulfilled.match(resultAction)) {
-      alert("Đăng nhập thành công!");
       router.push("/homepage"); // Chuyển hướng đến trang dashboard (hoặc trang mong muốn)
     } else {
       // Nếu đăng nhập thất bại
-      alert(
+      console.log(
         "Đăng nhập thất bại: " +
           (resultAction.payload?.message || "Lỗi không xác định")
       );
@@ -60,8 +60,8 @@ export default function LoginForm() {
   };
 
   const handleGoogleLogin = async () => {
-    alert("Google login");
-    window.location.href = "http://localhost:5000/api/auth/google";
+    alert(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/google`);
+    window.location.href = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/google`;
   };
 
   return (
@@ -127,7 +127,14 @@ export default function LoginForm() {
               className="w-full rounded-full p-5 bg-yellow-orange hover:bg-l-yellow"
               disabled={loading}
             >
-              {loading ? "Loading..." : "Login now"}
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Spinner size="sm" className="text-white" />
+                  <span>Loading</span>
+                </div>
+              ) : (
+                "Login now"
+              )}
             </Button>
           </form>
         </Form>

@@ -47,8 +47,6 @@ class MessageService {
       }
     );
 
-    console.log("message", message);
-
     return message.populate([
       { path: "sender", select: "username avatar" },
       { path: "replyTo", select: "content sender" },
@@ -63,11 +61,14 @@ class MessageService {
     if (!conversation)
       throw new NotFoundError("Not found conversation or user not authorized");
 
+    const totalMessages = await Message.countDocuments({
+      conversation: conversationId,
+    });
+
     const messages = await Message.find({ conversation: conversationId })
-      .sort({
-        createdAt: -1,
-      })
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
+      .limit(limit)
       .populate({ path: "sender", select: "username avatar" })
       .populate({ path: "replyTo", select: "content sender" })
       .lean();
@@ -77,7 +78,9 @@ class MessageService {
       pagination: {
         page,
         limit,
-        hasMore: messages.length === limit,
+        total: totalMessages,
+        totalPages: Math.ceil(totalMessages / limit),
+        hasMore: page * limit < totalMessages,
       },
     };
   }

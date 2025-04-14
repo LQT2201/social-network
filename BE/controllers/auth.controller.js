@@ -89,7 +89,7 @@ class AuthController {
         httpOnly: false,
         secure: false,
       });
-      return res.redirect(`http://localhost:3000/signin`);
+      return res.redirect(`${process.env.CLIENT_URL}/homepage`);
     } catch (error) {
       next(error);
     }

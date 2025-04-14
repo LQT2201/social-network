@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import SideNav from "../../homepage/_components/SideNav";
+import SideNav from "../../../_components/SideNav";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {

@@ -8,7 +8,7 @@ import {
   selectPagination,
 } from "@/redux/features/postSlice";
 import PostModal from "../homepage/_components/post-modal/PostModal";
-import SideNav from "../homepage/_components/SideNav";
+import SideNav from "../../_components/SideNav";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 import withAuth from "@/hocs/withAuth";

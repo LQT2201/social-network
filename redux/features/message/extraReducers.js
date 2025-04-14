@@ -1,7 +1,6 @@
 import {
   fetchConversations,
   fetchMessages,
-  sendMessage,
   createConversation,
   markConversationAsRead,
   togglePinConversationAsync,
@@ -31,23 +30,24 @@ export const buildExtraReducers = (builder) => {
     })
     .addCase(fetchMessages.fulfilled, (state, action) => {
       const { conversationId, messages, pagination } = action.payload;
-      state.messagesByConversation[conversationId] = messages;
+
+      // Nếu là trang đầu tiên, gán mới messages
+      if (pagination.page === 1) {
+        state.messagesByConversation[conversationId] = messages;
+      } else {
+        // Nếu là trang tiếp theo, nối thêm messages vào cuối
+        const existingMessages =
+          state.messagesByConversation[conversationId] || [];
+        state.messagesByConversation[conversationId] = [
+          ...messages,
+          ...existingMessages,
+        ];
+      }
+
       state.pagination = pagination;
       state.status = "succeeded";
     })
     .addCase(fetchMessages.rejected, (state, action) => {
-      state.status = "failed";
-      state.error = action.payload;
-    })
-
-    // Handle sendMessage
-    .addCase(sendMessage.pending, (state) => {
-      state.status = "loading";
-    })
-    .addCase(sendMessage.fulfilled, (state, action) => {
-      state.status = "succeeded";
-    })
-    .addCase(sendMessage.rejected, (state, action) => {
       state.status = "failed";
       state.error = action.payload;
     })

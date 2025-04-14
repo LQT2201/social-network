@@ -9,13 +9,12 @@ const MessageItem = ({
   lastMessage,
   time,
   unreadCount = 0,
-  isOnline = false,
+  isOnline = true,
 }) => {
   const renderCount = useRef(0);
   renderCount.current += 1;
-  console.log("MessageItem render count:", renderCount.current);
+  console.log("MessageItem render count:", renderCount.current, isOnline);
 
-  // Trích xuất chữ cái đầu tiên của username cho avatar fallback
   const getInitials = () => {
     if (!username) return "?";
     return username.charAt(0).toUpperCase();

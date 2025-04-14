@@ -18,7 +18,7 @@ export const fetchConversations = createAsyncThunk(
 
 export const fetchMessages = createAsyncThunk(
   "messages/fetchMessages",
-  async ({ conversationId, page = 1, limit = 20 }, { rejectWithValue }) => {
+  async ({ conversationId, page = 1, limit = 15 }, { rejectWithValue }) => {
     try {
       const response = await MessageService.getMessages(
         conversationId,
@@ -26,28 +26,6 @@ export const fetchMessages = createAsyncThunk(
         limit
       );
       return { conversationId, ...response };
-    } catch (error) {
-      toast.error(error.message);
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const sendMessage = createAsyncThunk(
-  "messages/sendMessage",
-  async (
-    { conversationId, content, media = null, replyTo = null },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await MessageService.createMessage({
-        conversationId,
-        content,
-        media,
-        replyTo,
-      });
-      // Return the conversationId along with the final message object from the server
-      return { conversationId, message: response.message };
     } catch (error) {
       toast.error(error.message);
       return rejectWithValue(error.message);

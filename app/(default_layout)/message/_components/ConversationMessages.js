@@ -1,5 +1,4 @@
 import React from "react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const ConversationMessages = ({ messages, currentUserId }) => {
   return (

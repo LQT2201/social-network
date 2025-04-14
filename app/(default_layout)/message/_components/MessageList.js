@@ -1,21 +1,30 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { Input } from "@/components/ui/input";
-import { Search, Pin } from "lucide-react";
-import MessageItem from "./MessageItem";
-import { useDispatch, useSelector } from "react-redux";
+import { Search } from "lucide-react";
+import { useSelector } from "react-redux";
 import {
-  setActiveConversation,
-  selectActiveConversation,
   selectPinnedConversations,
-  togglePinConversation,
+  selectAllConversations,
+  selectOnlineUsers,
 } from "@/redux/features/message";
+import ConversationItem from "./ConversationItem";
 
-const MessageList = ({ conversations = [], onlineUsers = [] }) => {
-  const dispatch = useDispatch();
-  const activeConversation = useSelector(selectActiveConversation);
-  const pinnedConversations = useSelector(selectPinnedConversations);
+const MessageList = React.memo(({ onSelectConversation }) => {
+  const [activeConversation, setActiveConversation] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Selectors
+  const conversations = useSelector(selectAllConversations);
+  const onlineUsers = useSelector(selectOnlineUsers);
+  const pinnedConversations = useSelector(selectPinnedConversations);
+
   const renderCount = useRef(0);
   renderCount.current += 1;
   console.log("MessageList render count:", renderCount.current);
@@ -24,49 +33,39 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
     setCurrentUserId(localStorage.getItem("x-client-id"));
   }, []);
 
-  const handleSelectConversation = (conversation) => {
-    dispatch(setActiveConversation(conversation));
-  };
-
-  const handleTogglePin = (e, conversationId) => {
-    e.stopPropagation(); // Prevent triggering conversation selection
-    dispatch(togglePinConversation(conversationId));
-  };
-
-  const getUserUnreadCount = (conversation) => {
-    const userId = activeConversation?.currentUser?._id || currentUserId;
-
-    if (
-      !userId ||
-      !conversation?.unreadCount ||
-      !Array.isArray(conversation.unreadCount)
-    ) {
-      return 0;
-    }
-
-    const userUnread = conversation.unreadCount.find(
-      (item) => item.user === userId
-    );
-    return userUnread?.count ? Number(userUnread.count) : 0;
-  };
-
-  const filteredConversations = conversations.filter((conversation) => {
-    if (!searchQuery.trim()) return true;
-
-    const participantName = conversation.participants?.[0]?.username || "";
-    return participantName.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
-  // Separate pinned and unpinned conversations using Redux state
-  const pinnedConvs = filteredConversations.filter((conv) =>
-    pinnedConversations.includes(conv._id)
+  const handleSelectConversation = useCallback(
+    (conversation) => {
+      setActiveConversation(conversation);
+      onSelectConversation(conversation);
+    },
+    [onSelectConversation]
   );
 
-  const unpinnedConvs = filteredConversations.filter(
-    (conv) => !pinnedConversations.includes(conv._id)
-  );
+  const handleSearchChange = useCallback((e) => {
+    setSearchQuery(e.target.value);
+  }, []);
 
-  // Hiển thị khi không có cuộc trò chuyện nào
+  // Memoize filtered conversations
+  const filteredConversations = useMemo(() => {
+    return conversations.filter((conversation) => {
+      if (!searchQuery.trim()) return true;
+      const participantName = conversation.participants?.[0]?.username || "";
+      return participantName.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [conversations, searchQuery]);
+
+  // Memoize pinned and unpinned conversations
+  const { pinnedConvs, unpinnedConvs } = useMemo(() => {
+    return {
+      pinnedConvs: filteredConversations.filter((conv) =>
+        pinnedConversations.includes(conv._id)
+      ),
+      unpinnedConvs: filteredConversations.filter(
+        (conv) => !pinnedConversations.includes(conv._id)
+      ),
+    };
+  }, [filteredConversations, pinnedConversations]);
+
   if (!conversations || !conversations.length) {
     return (
       <div>
@@ -80,7 +79,7 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
             placeholder="Search"
             className="rounded-sm bg-white border-none shadow-none pl-10"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
           />
         </div>
         <div className="py-4 text-center text-gray-500">
@@ -89,39 +88,6 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
       </div>
     );
   }
-
-  const ConversationItem = ({ conversation }) => {
-    const isPinned = pinnedConversations.includes(conversation._id);
-
-    return (
-      <div
-        key={conversation._id}
-        className="relative group"
-        onClick={() => handleSelectConversation(conversation)}
-      >
-        <MessageItem
-          _id={conversation._id}
-          username={conversation.participants?.[0]?.username || "Unknown"}
-          avatar={conversation.participants?.[0]?.avatar}
-          lastMessage={conversation.lastMessage?.content || "No messages yet"}
-          time={
-            conversation.lastMessage?.createdAt
-              ? new Date(conversation.lastMessage.createdAt).toLocaleTimeString(
-                  [],
-                  {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }
-                )
-              : ""
-          }
-          unreadCount={getUserUnreadCount(conversation)}
-          isOnline={onlineUsers.includes(conversation.participants?.[0]?._id)}
-          isPinned={isPinned}
-        />
-      </div>
-    );
-  };
 
   return (
     <div>
@@ -136,7 +102,7 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
           placeholder="Search"
           className="rounded-sm bg-white border-none shadow-none pl-10"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={handleSearchChange}
         />
       </div>
 
@@ -150,6 +116,11 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
                   <ConversationItem
                     key={conversation._id}
                     conversation={conversation}
+                    isActive={activeConversation?._id === conversation._id}
+                    isPinned={true}
+                    onlineUsers={onlineUsers}
+                    currentUserId={currentUserId}
+                    onSelect={handleSelectConversation}
                   />
                 ))}
               </div>
@@ -159,11 +130,17 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
           <h3 className="mt-4 font-medium">
             {pinnedConvs.length > 0 ? "All messages" : "Messages"}
           </h3>
+
           <div className="space-y-1">
             {unpinnedConvs.map((conversation) => (
               <ConversationItem
                 key={conversation._id}
                 conversation={conversation}
+                isActive={activeConversation?._id === conversation._id}
+                isPinned={false}
+                onlineUsers={onlineUsers}
+                currentUserId={currentUserId}
+                onSelect={handleSelectConversation}
               />
             ))}
           </div>
@@ -175,6 +152,8 @@ const MessageList = ({ conversations = [], onlineUsers = [] }) => {
       )}
     </div>
   );
-};
+});
+
+MessageList.displayName = "MessageList";
 
 export default MessageList;
