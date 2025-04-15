@@ -130,7 +130,7 @@ npm run dev
 The application will be available at:
 
 - Frontend: http://localhost:3000
-- Backend API: http://localhost:4000
+- Backend API: http://localhost:5000
 
 ## Project Structure
 
@@ -168,6 +168,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-Your Name - [@yourgithub](https://github.com/yourgithub)
+Your Name - [@LQT2201](https://github.com/LQT2201)
 
-Project Link: [https://github.com/yourusername/social-network](https://github.com/yourusername/social-network)
+
