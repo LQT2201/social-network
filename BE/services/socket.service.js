@@ -119,12 +119,10 @@ class SocketService {
         });
 
         await newMessage.save();
-        const jsObject = await newMessage.toJSON();
+        const message = await newMessage.toJSON();
 
-        console.log(jsObject);
-
-        this.io.to(conversationId).emit("newMessage", {
-          jsObject,
+        this.io.emit("newMessage", {
+          message,
         });
       } catch (error) {
         socket.emit("messageError", { error: error.message });

@@ -44,12 +44,12 @@ const userSchema = new mongoose.Schema(
     avatar: {
       type: String,
       default:
-        "https://res.cloudinary.com/demo/image/upload/v1674042682/default-avatar.png",
+        "https://res.cloudinary.com/dgtac4atn/image/upload/v1744793135/social_media_uploads/dks4tjsizcpugnrifpvv.jpg",
     },
     coverImage: {
       type: String,
       default:
-        "https://res.cloudinary.com/demo/image/upload/v1674042682/default-cover.png",
+        "https://res.cloudinary.com/dgtac4atn/image/upload/v1744793524/social_media_uploads/mzywkioy1mrmoptlf4yf.webp",
     },
     // Follow system
     followers: [

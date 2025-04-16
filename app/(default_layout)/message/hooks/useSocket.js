@@ -1,19 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { io } from "socket.io-client";
 import {
   setOnlineUsers,
   updateUserStatus,
   markAsRead,
+  addMessage,
+  sendMessage,
+  fetchMessages,
+  markMessagesAsRead,
+  markConversationAsRead,
 } from "@/redux/features/message";
 
-export const useSocket = (token, clientId) => {
+export const useSocket = (activeConversation) => {
   const dispatch = useDispatch();
   const [socket, setSocket] = useState(null);
+  const [token, setToken] = useState(null);
+  const [clientId, setClientId] = useState(null);
+
+  useEffect(() => {
+    setToken(localStorage.getItem("accessToken"));
+    setClientId(localStorage.getItem("x-client-id"));
+  }, []);
 
   useEffect(() => {
     if (!token || !clientId) return;
-
     const socketUrl = process.env.NEXT_PUBLIC_BASE_URL_SOCKET;
     const newSocket = io(socketUrl, {
       auth: {
@@ -27,54 +38,104 @@ export const useSocket = (token, clientId) => {
 
     setSocket(newSocket);
 
-    // Handle initial online users
     const handleOnlineUsers = (users) => {
-      console.log("Online users received from socket:", users);
       dispatch(setOnlineUsers(users));
     };
-
-    // Handle user status changes
     const handleUserStatus = ({ userId, isOnline }) => {
-      console.log(`User ${userId} is ${isOnline ? "online" : "offline"}`);
       dispatch(updateUserStatus({ userId, isOnline }));
     };
-
-    // Handle message read status
     const handleMessageRead = ({ userId, conversationId }) => {
       dispatch(markAsRead({ userId, conversationId }));
     };
-
-    // Handle connection events
+    const handleNewMessage = ({ message }) => {
+      console.log("message", message);
+      dispatch(addMessage(message));
+    };
     const handleConnect = () => {
-      console.log("Socket connected");
-      // Emit user online status when connected
       newSocket.emit("userOnline", { userId: clientId });
     };
-
     const handleDisconnect = () => {
       console.log("Socket disconnected");
-      // Emit user offline status when disconnected
-      newSocket.emit("userOffline", { userId: clientId });
     };
 
-    // Socket event listeners
     newSocket.on("connect", handleConnect);
     newSocket.on("disconnect", handleDisconnect);
     newSocket.on("onlineUsers", handleOnlineUsers);
     newSocket.on("userStatus", handleUserStatus);
     newSocket.on("markAsRead", handleMessageRead);
+    newSocket.on("newMessage", handleNewMessage);
 
     return () => {
-      // Cleanup on unmount
-      newSocket.emit("userOffline", { userId: clientId });
+      if (newSocket.connected) {
+        newSocket.emit("userOffline", { userId: clientId });
+      }
       newSocket.disconnect();
       newSocket.off("connect", handleConnect);
       newSocket.off("disconnect", handleDisconnect);
       newSocket.off("onlineUsers", handleOnlineUsers);
       newSocket.off("userStatus", handleUserStatus);
       newSocket.off("markAsRead", handleMessageRead);
+      newSocket.off("newMessage", handleNewMessage);
     };
   }, [token, clientId, dispatch]);
 
-  return socket;
+  useEffect(() => {
+    if (!socket || !activeConversation?._id) return;
+
+    socket.emit("joinConversation", activeConversation._id);
+
+    return () => {
+      socket.emit("leaveConversation", activeConversation._id);
+    };
+  }, [socket, activeConversation]);
+
+  useEffect(() => {
+    if (activeConversation?._id && clientId) {
+      dispatch(fetchMessages({ conversationId: activeConversation._id }));
+      dispatch(
+        markConversationAsRead({
+          conversationId: activeConversation._id,
+          userId: clientId,
+        })
+      );
+    }
+  }, [activeConversation?._id, clientId, dispatch]);
+
+  const handleSendMessage = useCallback(
+    (content) => {
+      if (!socket || !activeConversation?._id || !clientId) return;
+
+      socket.emit("sendMessage", {
+        conversationId: activeConversation._id,
+        content,
+      });
+    },
+    [socket, activeConversation, clientId]
+  );
+
+  // Handle marking messages as read
+  const handleMarkAsRead = useCallback(() => {
+    if (!activeConversation?._id || !clientId || !socket) return;
+
+    const conversationId = activeConversation._id;
+
+    socket.emit("markAsRead", {
+      conversationId,
+    });
+
+    dispatch(markMessagesAsRead({ conversationId, userId: clientId }));
+    dispatch(
+      markConversationAsRead({
+        conversationId,
+        userId: clientId,
+      })
+    );
+  }, [activeConversation, clientId, dispatch, socket]);
+
+  return {
+    socket,
+    clientId,
+    handleSendMessage,
+    handleMarkAsRead,
+  };
 };

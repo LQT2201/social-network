@@ -21,6 +21,8 @@ import Link from "next/link";
 import CustomButton from "@/app/_components/CustomButton";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "@/redux/features/authSlice";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 // Định nghĩa schema bằng Zod
 const formSchema = z.object({
@@ -36,6 +38,7 @@ const formSchema = z.object({
 
 export default function RegisterForm() {
   const dispatch = useDispatch();
+  const router = useRouter();
   const { loading, error } = useSelector((state) => state.auth);
 
   // Khởi tạo form với react-hook-form và zodResolver
@@ -50,7 +53,13 @@ export default function RegisterForm() {
 
   // Hàm xử lý khi form được submit
   function onSubmit(data) {
-    dispatch(registerUser(data)); // Dispatch action đăng ký
+    dispatch(registerUser(data));
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Register successfully");
+      router.push("/homepage"); // Dispatch action đăng ký
+    }
   }
 
   return (

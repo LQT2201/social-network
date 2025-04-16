@@ -25,10 +25,6 @@ const MessageList = React.memo(({ onSelectConversation }) => {
   const onlineUsers = useSelector(selectOnlineUsers);
   const pinnedConversations = useSelector(selectPinnedConversations);
 
-  const renderCount = useRef(0);
-  renderCount.current += 1;
-  console.log("MessageList render count:", renderCount.current);
-
   useEffect(() => {
     setCurrentUserId(localStorage.getItem("x-client-id"));
   }, []);

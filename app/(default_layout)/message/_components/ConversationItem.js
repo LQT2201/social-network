@@ -27,8 +27,6 @@ const ConversationItem = memo(
 
     const isOnline = onlineUsers.includes(conversation.participants?.[0]?._id);
 
-    console.log(onlineUsers, "and", conversation.participants?.[0]?._id);
-
     return (
       <div className="relative group" onClick={() => onSelect(conversation)}>
         <MessageItem

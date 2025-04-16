@@ -11,10 +11,6 @@ const MessageItem = ({
   unreadCount = 0,
   isOnline = true,
 }) => {
-  const renderCount = useRef(0);
-  renderCount.current += 1;
-  console.log("MessageItem render count:", renderCount.current, isOnline);
-
   const getInitials = () => {
     if (!username) return "?";
     return username.charAt(0).toUpperCase();

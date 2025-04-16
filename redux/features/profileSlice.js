@@ -23,7 +23,6 @@ export const updateProfile = createAsyncThunk(
     try {
       console.log("profile/updateProfile ");
       const response = await ProfileService.updateProfile(data);
-      toast.success("Profile updated successfully");
       return response;
     } catch (error) {
       toast.error(error.message);

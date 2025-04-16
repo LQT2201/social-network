@@ -20,7 +20,7 @@ import ProfileInfo from "../_components/ProfileInfo";
 import ProfileTabs from "../_components/ProfileTabs";
 import ProfileLoading from "../_components/ProfileLoading";
 import CardRecommendation from "../../homepage/_components/recommend-section/CardRecommendation";
-
+import withAuth from "@/hocs/withAuth";
 const ProfilePage = ({ params }) => {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -95,7 +95,7 @@ const ProfilePage = ({ params }) => {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <h2 className="text-2xl font-bold mb-4">User not found</h2>
-        <Button onClick={() => router.push("/")}>Go Home</Button>
+        <Button onClick={() => router.push("/homepage")}>Go Home</Button>
       </div>
     );
   }
@@ -163,4 +163,4 @@ const ProfilePage = ({ params }) => {
   );
 };
 
-export default ProfilePage;
+export default withAuth(ProfilePage);

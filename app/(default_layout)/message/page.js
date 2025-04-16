@@ -4,38 +4,22 @@ import MessageLayout from "./_components/MessageLayout";
 import MessageListContainer from "./_components/MessageListContainer";
 import ConversationContainer from "./_components/ConversationContainer";
 import { useSocket } from "./hooks/useSocket";
-import { useMessages } from "./hooks/useMessages";
 import { useConversations } from "./hooks/useConversations";
 
 const Page = () => {
-  const renderCount = useRef(0);
-  renderCount.current += 1;
-  console.log("Page render count:", renderCount.current);
-
   const [showUserModal, setShowUserModal] = useState(false);
-  const [token, setToken] = useState(null);
-  const [clientId, setClientId] = useState(null);
   const [activeConversation, setActiveConversation] = useState(null);
 
-  // Custom hooks
-  const socket = useSocket(token, clientId);
-  const { handleSendMessage, handleMarkAsRead } = useMessages(
-    socket,
-    activeConversation,
-    clientId
-  );
-  useConversations(clientId);
+  // Use the combined hook
+  const { socket, clientId, handleSendMessage, handleMarkAsRead } =
+    useSocket(activeConversation);
 
-  // Initial setup
-  useEffect(() => {
-    setToken(localStorage.getItem("accessToken"));
-    setClientId(localStorage.getItem("x-client-id"));
-  }, []);
+  // Call useConversations with clientId
+  useConversations(clientId);
 
   const handleSelectConversation = useCallback((conversation) => {
     setActiveConversation(conversation);
-  }, []); 
-  
+  }, []);
 
   return (
     <MessageLayout>

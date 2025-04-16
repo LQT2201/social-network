@@ -97,8 +97,15 @@ export const addMessage = (state, action) => {
   const conversation = state.conversations.find(
     (c) => c._id === conversationId
   );
+
   if (conversation) {
     conversation.lastMessage = message;
+    // Update the conversation's unreadCount
+    conversation.unreadCount[0].user = message.sender._id;
+
+    if (conversation.unreadCount) {
+      conversation.unreadCount = 0;
+    }
   }
 };
 
