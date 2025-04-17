@@ -15,4 +15,6 @@ const MessageLayout = memo(({ children }) => {
   );
 });
 
+MessageLayout.displayName = "MessageLayout";
+
 export default MessageLayout;

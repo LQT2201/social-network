@@ -41,7 +41,7 @@ const CardContent = () => (
 
 const CardFooter = () => (
   <div className="rounded-b-lg bg-white py-3 px-5 text-d-gray">
-    <p className="text-jet line-clamp-1">Canon, CON CAC 204 MARK IV</p>
+    <p className="text-jet line-clamp-1">Picture by Canon 204 MARK IV</p>
   </div>
 );
 

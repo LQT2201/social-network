@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import NoMoreRecommendations from "./NoMoreRecommendations";
 
-// Sử dụng lazy loading cho RecommendationCardItem với Suspense
 const RecommendationCardItem = dynamic(
   () => import("./RecommendationCardItem"),
   { suspense: true }
@@ -27,7 +26,6 @@ const LoadingFallback = () => (
   </div>
 );
 
-// Component hiển thị nút Load More
 const LoadMoreButton = ({ handleLoadMore }) => (
   <Button
     variant="link"
@@ -52,7 +50,6 @@ const CardRecommendation = () => {
     }
   };
 
-  // Lấy dữ liệu khi component được mount hoặc currentPage thay đổi
   useEffect(() => {
     if (!recommendUsers.length) {
       dispatch(getRecommendUsers({ page: currentPage }));
@@ -62,6 +59,9 @@ const CardRecommendation = () => {
   return (
     <div className="flex flex-col gap-2 mt-4">
       <Suspense fallback={<LoadingFallback />}>
+        {recommendUsers.length == 0 && (
+          <NoMoreRecommendations title="No Recommendation For You" />
+        )}
         {recommendUsers.map((rec) => (
           <RecommendationCardItem key={rec._id} recommendation={rec} />
         ))}

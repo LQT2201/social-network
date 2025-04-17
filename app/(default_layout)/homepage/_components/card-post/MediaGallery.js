@@ -42,9 +42,11 @@ const MediaItem = ({ item, index, mediaCount, isLastTile }) => {
 };
 
 const MediaGallery = ({ media }) => {
-  // Flatten images and videos into single array
+  console.log(media);
   const allMedia = [...(media?.images || []), ...(media?.videos || [])];
   const mediaCount = allMedia.length;
+
+  console.log(allMedia);
 
   if (!mediaCount) return null;
 

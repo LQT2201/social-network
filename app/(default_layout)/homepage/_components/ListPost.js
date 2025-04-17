@@ -37,13 +37,15 @@ const ListPost = ({
       }
     );
 
-    if (loadingRef.current) {
-      observer.observe(loadingRef.current);
+    const currentLoadingRef = loadingRef.current;
+
+    if (currentLoadingRef) {
+      observer.observe(currentLoadingRef);
     }
 
     return () => {
-      if (loadingRef.current) {
-        observer.unobserve(loadingRef.current);
+      if (currentLoadingRef) {
+        observer.unobserve(currentLoadingRef);
       }
     };
   }, [hasMore, onLoadMore]);
@@ -70,6 +72,7 @@ const ListPost = ({
     comments: post.stats.comments,
     shares: post.stats.shares.length,
     userId: post.author._id,
+    avatar: post.author.avatar,
   });
 
   return (
@@ -84,7 +87,6 @@ const ListPost = ({
         </Suspense>
       ))}
 
-      {/* Loading indicator and intersection observer trigger */}
       <div ref={loadingRef} className="pt-4">
         {hasMore && (
           <div className="flex justify-center">

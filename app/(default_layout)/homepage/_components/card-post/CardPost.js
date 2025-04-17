@@ -14,20 +14,22 @@ const CardPost = ({ post, onLike, onCommentClick }) => {
     shares,
     like,
     userId,
+    avatar,
+    media,
   } = post;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm mb-4">
+    <div className="bg-white rounded-xl shadow mb-4 overflow-hidden">
       <PostHeader
-        userId={userId}
         username={username}
         postedAt={postedAt}
-        avatar={post.author?.avatar}
+        userId={userId}
+        avatar={avatar}
       />
 
-      <p className="px-4 mb-4 text-gray-800">{caption}</p>
+      <div className="px-4 mb-4 text-gray-800">{caption}</div>
 
-      <MediaGallery media={post.media} />
+      {media && <MediaGallery media={media} />}
 
       <PostActions
         liked={liked}
@@ -36,6 +38,7 @@ const CardPost = ({ post, onLike, onCommentClick }) => {
         shares={shares}
         onLike={onLike}
         onCommentClick={onCommentClick}
+        postId={post.id}
       />
     </div>
   );

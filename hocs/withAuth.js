@@ -1,4 +1,6 @@
 // src/hocs/withAuth.js
+"use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
@@ -7,16 +9,25 @@ const withAuth = (WrappedComponent) => {
   const Wrapper = (props) => {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
       const checkAuth = () => {
-        const token = localStorage.getItem("accessToken");
-        const clientId = localStorage.getItem("x-client-id");
+        try {
+          const token = localStorage.getItem("accessToken");
+          const clientId = localStorage.getItem("x-client-id");
 
-        if (!token || !clientId) {
-          router.push("/signin");
+          if (!token || !clientId) {
+            router.replace("/signin");
+            return;
+          }
+
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error("Auth check error:", error);
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       };
 
       checkAuth();
@@ -30,9 +41,12 @@ const withAuth = (WrappedComponent) => {
       );
     }
 
+    if (!isAuthenticated) {
+      return null;
+    }
+
     return <WrappedComponent {...props} />;
   };
-
   return Wrapper;
 };
 

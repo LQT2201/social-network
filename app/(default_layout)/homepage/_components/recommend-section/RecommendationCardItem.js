@@ -1,20 +1,54 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  followUser,
+  unfollowUser,
+  selectFollowing,
+} from "@/redux/features/profileSlice";
+import { toast } from "react-hot-toast";
 
 const RecommendationCardItem = ({ recommendation, onRemove }) => {
-  const [isFollowing, setIsFollowing] = useState(false); // Track follow state
+  const dispatch = useDispatch();
+  const following = useSelector(selectFollowing);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleFollowClick = () => {
-    setIsFollowing(!isFollowing);
+  // Check if user is already being followed
+  useEffect(() => {
+    if (
+      following &&
+      following.some((user) => user._id === recommendation._id)
+    ) {
+      setIsFollowing(true);
+    }
+  }, [following, recommendation._id]);
+
+  const handleFollowClick = async () => {
+    setIsLoading(true);
+    try {
+      if (isFollowing) {
+        await dispatch(unfollowUser(recommendation._id)).unwrap();
+        toast.success(`Unfollowed ${recommendation.username}`);
+      } else {
+        await dispatch(followUser(recommendation._id)).unwrap();
+        toast.success(`Following ${recommendation.username}`);
+      }
+      setIsFollowing(!isFollowing);
+    } catch (error) {
+      toast.error(`Failed to ${isFollowing ? "unfollow" : "follow"} user`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRemove = () => {
     if (onRemove) {
-      onRemove(recommendation.id);
+      onRemove(recommendation._id);
     }
   };
 
@@ -38,23 +72,27 @@ const RecommendationCardItem = ({ recommendation, onRemove }) => {
               <b>{recommendation.username}</b>
             </p>
           </Link>
-          <p className="line-clamp-1 text-sm">{recommendation.bio}</p>
+          <p className="line-clamp-1 text-sm text-gray-500">
+            {recommendation.bio}
+          </p>
         </div>
       </div>
       <div className="flex flex-col items-end justify-center space-y-1">
         <X
           size={15}
-          className="cursor-pointer text-d-gray hover:text-jet"
+          className="cursor-pointer text-d-gray hover:text-jet transition-colors"
           onClick={handleRemove}
+          aria-label="Remove recommendation"
         />
         <Button
           variant="link"
           className={`text-sm ${
             isFollowing ? "text-yellow-500" : "text-l-yellow"
-          } hover:text-yellow-orange`}
+          } hover:text-yellow-orange transition-colors`}
           onClick={handleFollowClick}
+          disabled={isLoading}
         >
-          {isFollowing ? "Unfollow" : "Visit"}
+          {isLoading ? "Processing..." : isFollowing ? "Unfollow" : "Follow"}
         </Button>
       </div>
     </div>

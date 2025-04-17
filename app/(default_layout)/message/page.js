@@ -5,12 +5,12 @@ import MessageListContainer from "./_components/MessageListContainer";
 import ConversationContainer from "./_components/ConversationContainer";
 import { useSocket } from "./hooks/useSocket";
 import { useConversations } from "./hooks/useConversations";
+import withAuth from "@/hocs/withAuth";
 
 const Page = () => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [activeConversation, setActiveConversation] = useState(null);
 
-  // Use the combined hook
   const { socket, clientId, handleSendMessage, handleMarkAsRead } =
     useSocket(activeConversation);
 
@@ -36,4 +36,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default withAuth(Page);
