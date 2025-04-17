@@ -160,4 +160,19 @@ export const togglePinConversation = (state, action) => {
     // Pin conversation
     state.pinnedConversations.push(conversationId);
   }
+
+  // Safely update localStorage (only on client-side)
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(
+        "pinnedConversations",
+        JSON.stringify(state.pinnedConversations)
+      );
+    } catch (error) {
+      console.error(
+        "Error saving pinned conversations to localStorage:",
+        error
+      );
+    }
+  }
 };

@@ -4,7 +4,6 @@ import { io } from "socket.io-client";
 import {
   setOnlineUsers,
   updateUserStatus,
-  markAsRead,
   addMessage,
   sendMessage,
   fetchMessages,
@@ -44,9 +43,7 @@ export const useSocket = (activeConversation) => {
     const handleUserStatus = ({ userId, isOnline }) => {
       dispatch(updateUserStatus({ userId, isOnline }));
     };
-    const handleMessageRead = ({ userId, conversationId }) => {
-      dispatch(markAsRead({ userId, conversationId }));
-    };
+    const handleMessageRead = ({ userId, conversationId }) => {};
     const handleNewMessage = ({ message }) => {
       console.log("message", message);
       dispatch(addMessage(message));

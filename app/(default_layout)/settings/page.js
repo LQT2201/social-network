@@ -6,11 +6,7 @@ import { toast } from "react-hot-toast";
 import withAuth from "@/hocs/withAuth";
 import SideNav from "../../_components/SideNav";
 import SettingsTabs from "./_components/SettingsTabs";
-import {
-  fetchCurrentUser,
-  selectUser,
-  updateProfile,
-} from "@/redux/features/userSlice";
+import { fetchCurrentUser, selectUser } from "@/redux/features/userSlice";
 
 const SettingsPage = () => {
   const dispatch = useDispatch();
@@ -48,7 +44,7 @@ const SettingsPage = () => {
     setIsLoading(true);
 
     try {
-      await dispatch(updateProfile(formData)).unwrap();
+      // await dispatch(updateProfile(formData)).unwrap();
       toast.success("Thông tin cá nhân đã được cập nhật");
     } catch (error) {
       toast.error("Không thể cập nhật thông tin cá nhân");

@@ -12,25 +12,28 @@ const withAuth = (WrappedComponent) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-      const checkAuth = () => {
-        try {
-          const token = localStorage.getItem("accessToken");
-          const clientId = localStorage.getItem("x-client-id");
+      // Ensuring this only runs on the client
+      if (typeof window !== "undefined") {
+        const checkAuth = () => {
+          try {
+            const token = localStorage.getItem("accessToken");
+            const clientId = localStorage.getItem("x-client-id");
 
-          if (!token || !clientId) {
-            router.replace("/signin");
-            return;
+            if (!token || !clientId) {
+              router.replace("/signin");
+              return;
+            }
+
+            setIsAuthenticated(true);
+          } catch (error) {
+            console.error("Auth check error:", error);
+          } finally {
+            setIsLoading(false);
           }
+        };
 
-          setIsAuthenticated(true);
-        } catch (error) {
-          console.error("Auth check error:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      checkAuth();
+        checkAuth();
+      }
     }, [router]);
 
     if (isLoading) {
@@ -47,6 +50,12 @@ const withAuth = (WrappedComponent) => {
 
     return <WrappedComponent {...props} />;
   };
+
+  // Add displayName for better debugging
+  Wrapper.displayName = `withAuth(${
+    WrappedComponent.displayName || WrappedComponent.name || "Component"
+  })`;
+
   return Wrapper;
 };
 

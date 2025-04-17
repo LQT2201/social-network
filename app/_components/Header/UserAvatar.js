@@ -13,7 +13,10 @@ import {
 import { useRouter } from "next/navigation";
 
 const UserAvatar = () => {
-  const clientId = localStorage.getItem("x-client-id");
+  if (typeof window != "undefined") {
+    const clientId = localStorage.getItem("x-client-id");
+  }
+
   const router = useRouter();
 
   const handleLogout = () => {

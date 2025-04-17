@@ -20,8 +20,10 @@ import withAuth from "@/hocs/withAuth";
 import CreatePost from "./_components/create-post";
 import { fetchCurrentUser, selectUser } from "@/redux/features/userSlice";
 import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const HomePage = () => {
+  const router = useRouter();
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
@@ -41,13 +43,13 @@ const HomePage = () => {
         await dispatch(fetchPosts({ page: 1, limit: 4 })).unwrap();
         await dispatch(fetchCurrentUser()).unwrap();
       } catch (error) {
-        toast.error("Không thể tải dữ liệu");
-        console.error("Initial load error:", error);
+        router.push("/signin");
+        console.log(error);
       }
     };
 
     loadInitialData();
-  }, [dispatch]);
+  }, [dispatch, router]);
 
   const handleLikePost = useCallback(
     async (postId) => {
@@ -80,7 +82,7 @@ const HomePage = () => {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [dispatch, hasMore, isLoadingMore, postsPagination.page]);
+  }, [dispatch, hasMore, isLoadingMore, postsPagination?.page]);
 
   // Update the comment click handler with memo
   const handleCommentClick = useCallback((postId) => {

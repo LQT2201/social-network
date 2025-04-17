@@ -1,8 +1,12 @@
-// Helper function to load pinned conversations from localStorage
-const loadPinnedConversationsFromStorage = () => {
+// Wrap localStorage access in a function that checks if running on client-side
+const getInitialPinnedConversations = () => {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
   try {
-    const pinnedConversations = localStorage.getItem("pinnedConversations");
-    return pinnedConversations ? JSON.parse(pinnedConversations) : [];
+    const pinnedConversationsJSON = localStorage.getItem("pinnedConversations");
+    return pinnedConversationsJSON ? JSON.parse(pinnedConversationsJSON) : [];
   } catch (error) {
     console.error(
       "Error loading pinned conversations from localStorage:",
@@ -13,12 +17,19 @@ const loadPinnedConversationsFromStorage = () => {
 };
 
 export const initialState = {
+  activeConversation: {
+    _id: null,
+    participants: [],
+    createdAt: null,
+    updatedAt: null,
+    lastMessage: null,
+    unreadCount: null,
+    currentUser: null,
+  },
   conversations: [],
-  activeConversation: null,
   messagesByConversation: {},
   onlineUsers: [],
-  status: "idle",
+  pinnedConversations: getInitialPinnedConversations(),
   error: null,
-  pagination: {},
-  pinnedConversations: loadPinnedConversationsFromStorage(),
+  status: "idle",
 };
